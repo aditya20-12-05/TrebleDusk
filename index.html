@@ -396,17 +396,47 @@ speaker(12)
 
 const crowd=[]
 
-for(let i=0;i<250;i++){
+function createPerson(x,z){
 
-const person=new THREE.Mesh(
-new THREE.CylinderGeometry(0.3,0.4,1.2),
+const person=new THREE.Group()
+
+/* body */
+
+const body=new THREE.Mesh(
+new THREE.CylinderGeometry(0.3,0.4,1.2,8),
 new THREE.MeshStandardMaterial({color:0x111111})
 )
 
-person.position.set((Math.random()-0.5)*30,0,-25-Math.random()*10)
+body.position.y=0.6
+
+/* head */
+
+const head=new THREE.Mesh(
+new THREE.SphereGeometry(0.25,8,8),
+new THREE.MeshStandardMaterial({color:0x111111})
+)
+
+head.position.y=1.5
+
+person.add(body)
+person.add(head)
+
+person.position.set(x,0,z)
 
 scene.add(person)
+
 crowd.push(person)
+
+}
+
+/* generate crowd */
+
+for(let i=0;i<250;i++){
+
+const x=(Math.random()-0.5)*30
+const z=-25-Math.random()*10
+
+createPerson(x,z)
 
 }
 
