@@ -9,6 +9,7 @@ body{
 margin:0;
 overflow:hidden;
 font-family:Arial;
+background:black;
 }
 
 #moveBtn{
@@ -22,6 +23,7 @@ color:white;
 border:none;
 border-radius:8px;
 cursor:pointer;
+z-index:10;
 }
 
 #title{
@@ -31,21 +33,22 @@ width:100%;
 text-align:center;
 color:white;
 display:none;
+z-index:10;
 }
 
 #title h1{
-font-size:80px;
+font-size:90px;
 color:#ff7a00;
 margin:0;
+text-shadow:0 0 20px orange,0 0 40px orange;
 }
 
 #title h2{
-font-size:35px;
+font-size:36px;
 margin-top:10px;
 }
 
 </style>
-
 </head>
 
 
@@ -68,8 +71,12 @@ margin-top:10px;
 
 <script>
 
+/* SCENE */
+
 let scene = new THREE.Scene()
 scene.background = new THREE.Color(0x0b4da2)
+
+/* CAMERA */
 
 let camera = new THREE.PerspectiveCamera(
 75,
@@ -78,26 +85,41 @@ window.innerWidth/window.innerHeight,
 1000
 )
 
-let renderer = new THREE.WebGLRenderer()
+camera.position.set(0,5,10)
+
+/* RENDERER */
+
+let renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-camera.position.set(0,4,8)
-
-/* LIGHT */
+/* LIGHTS */
 
 let light = new THREE.DirectionalLight(0xffffff,1)
-light.position.set(5,10,7)
+light.position.set(5,10,5)
 scene.add(light)
+
+let ambient = new THREE.AmbientLight(0xffffff,0.5)
+scene.add(ambient)
 
 /* GROUND */
 
-let groundGeo = new THREE.PlaneGeometry(50,50)
+let groundGeo = new THREE.PlaneGeometry(200,200)
 let groundMat = new THREE.MeshPhongMaterial({color:0xffffff})
-let ground = new THREE.Mesh(groundGeo,groundMat)
 
+let ground = new THREE.Mesh(groundGeo,groundMat)
 ground.rotation.x = -Math.PI/2
 scene.add(ground)
+
+/* PATH */
+
+let pathGeo = new THREE.PlaneGeometry(5,200)
+let pathMat = new THREE.MeshPhongMaterial({color:0x999999})
+
+let path = new THREE.Mesh(pathGeo,pathMat)
+path.rotation.x = -Math.PI/2
+path.position.y = 0.01
+scene.add(path)
 
 /* CHARACTER */
 
@@ -105,22 +127,70 @@ let charGeo = new THREE.BoxGeometry(1,2,1)
 let charMat = new THREE.MeshPhongMaterial({color:0xffffff})
 
 let character = new THREE.Mesh(charGeo,charMat)
-
 character.position.y = 1
 scene.add(character)
 
-/* MULTIPURPOSE HALL */
+/* HALL BUILDING */
 
-let hallGeo = new THREE.BoxGeometry(6,4,6)
+let hallGeo = new THREE.BoxGeometry(10,6,10)
 let hallMat = new THREE.MeshPhongMaterial({color:0xff7a00})
 
 let hall = new THREE.Mesh(hallGeo,hallMat)
-
-hall.position.set(0,2,-20)
-
+hall.position.set(0,3,-40)
 scene.add(hall)
 
-/* MOVE BUTTON */
+/* STAGE LIGHTS */
+
+for(let i=0;i<8;i++){
+
+let lightGeo = new THREE.SphereGeometry(0.3)
+let lightMat = new THREE.MeshBasicMaterial({color:0xffffff})
+
+let stageLight = new THREE.Mesh(lightGeo,lightMat)
+
+stageLight.position.set(
+Math.random()*8-4,
+6,
+-40 + Math.random()*8-4
+)
+
+scene.add(stageLight)
+
+}
+
+/* FIREWORKS */
+
+let particles=[]
+
+function createFirework(){
+
+for(let i=0;i<80;i++){
+
+let geo = new THREE.SphereGeometry(0.1)
+let mat = new THREE.MeshBasicMaterial({color:0xff7a00})
+
+let p = new THREE.Mesh(geo,mat)
+
+p.position.set(
+Math.random()*20-10,
+10,
+-40
+)
+
+p.velocity = {
+x:(Math.random()-0.5)*0.5,
+y:Math.random()*0.8,
+z:(Math.random()-0.5)*0.5
+}
+
+scene.add(p)
+particles.push(p)
+
+}
+
+}
+
+/* MOVEMENT */
 
 let moving=false
 
@@ -143,21 +213,39 @@ document.getElementById("title").style.display="block"
 
 document.getElementById("song").play()
 
+setInterval(()=>{
+createFirework()
+},800)
+
 }
 
-/* ANIMATION */
+/* ANIMATION LOOP */
 
 function animate(){
 
 requestAnimationFrame(animate)
 
+/* CHARACTER WALK */
+
 if(moving){
 
-character.position.z -= 0.05
+character.position.z -= 0.08
 
-camera.position.z -= 0.05
+camera.position.z -= 0.08
 
 }
+
+/* FIREWORK PHYSICS */
+
+particles.forEach(p=>{
+
+p.position.x += p.velocity.x
+p.position.y += p.velocity.y
+p.position.z += p.velocity.z
+
+p.velocity.y -= 0.02
+
+})
 
 renderer.render(scene,camera)
 
