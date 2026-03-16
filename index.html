@@ -40,7 +40,7 @@ z-index:10;
 #title h1{
 font-size:90px;
 color:#ff7a00;
-text-shadow:0 0 50px orange;
+text-shadow:0 0 40px orange;
 }
 
 #title h2{
@@ -71,9 +71,6 @@ font-size:36px;
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x01030a)
-
-/* FOG */
-
 scene.fog = new THREE.Fog(0x01030a,40,200)
 
 /* CAMERA */
@@ -95,8 +92,7 @@ document.body.appendChild(renderer.domElement)
 
 /* LIGHTING */
 
-const ambient = new THREE.AmbientLight(0xffffff,0.3)
-scene.add(ambient)
+scene.add(new THREE.AmbientLight(0xffffff,0.35))
 
 const moonLight = new THREE.DirectionalLight(0x99aaff,0.9)
 moonLight.position.set(20,40,10)
@@ -106,11 +102,7 @@ scene.add(moonLight)
 
 const ground = new THREE.Mesh(
 new THREE.PlaneGeometry(500,500),
-new THREE.MeshStandardMaterial({
-color:0x1a1a2e,
-metalness:0.2,
-roughness:0.6
-})
+new THREE.MeshStandardMaterial({color:0x1a1a2e})
 )
 
 ground.rotation.x=-Math.PI/2
@@ -131,12 +123,12 @@ scene.add(path)
 
 for(let i=0;i<12;i++){
 
-const light = new THREE.PointLight(0xff7a00,2,25)
+const light=new THREE.PointLight(0xff7a00,2,25)
 
 light.position.set(
 (i-6)*2,
 0.5,
--30 - i*5
+-30-i*5
 )
 
 scene.add(light)
@@ -145,7 +137,7 @@ scene.add(light)
 
 /* STARS */
 
-const starGeo = new THREE.BufferGeometry()
+const starGeo=new THREE.BufferGeometry()
 let starVerts=[]
 
 for(let i=0;i<4000;i++){
@@ -163,19 +155,16 @@ starGeo.setAttribute(
 new THREE.Float32BufferAttribute(starVerts,3)
 )
 
-const stars = new THREE.Points(
+const stars=new THREE.Points(
 starGeo,
-new THREE.PointsMaterial({
-color:0xffffff,
-size:2.2
-})
+new THREE.PointsMaterial({color:0xffffff,size:2})
 )
 
 scene.add(stars)
 
 /* MOON */
 
-const moon = new THREE.Mesh(
+const moon=new THREE.Mesh(
 new THREE.SphereGeometry(20,32,32),
 new THREE.MeshStandardMaterial({color:0xffffcc})
 )
@@ -185,51 +174,53 @@ scene.add(moon)
 
 /* CHARACTER */
 
-const character = new THREE.Group()
+const character=new THREE.Group()
 
-const body = new THREE.Mesh(
+const mat=new THREE.MeshStandardMaterial({color:0xffff00})
+
+const body=new THREE.Mesh(
 new THREE.BoxGeometry(0.8,1.5,0.5),
-new THREE.MeshStandardMaterial({color:0xffffff})
+mat
 )
 
 body.position.y=1.2
 character.add(body)
 
-const head = new THREE.Mesh(
+const head=new THREE.Mesh(
 new THREE.SphereGeometry(0.4),
-new THREE.MeshStandardMaterial({color:0xffffff})
+mat
 )
 
 head.position.y=2.2
 character.add(head)
 
-const leftArm = new THREE.Mesh(
+const leftArm=new THREE.Mesh(
 new THREE.BoxGeometry(0.25,1,0.25),
-new THREE.MeshStandardMaterial({color:0xffffff})
+mat
 )
 
 leftArm.position.set(-0.65,1.2,0)
 character.add(leftArm)
 
-const rightArm = new THREE.Mesh(
+const rightArm=new THREE.Mesh(
 new THREE.BoxGeometry(0.25,1,0.25),
-new THREE.MeshStandardMaterial({color:0xffffff})
+mat
 )
 
 rightArm.position.set(0.65,1.2,0)
 character.add(rightArm)
 
-const leftLeg = new THREE.Mesh(
+const leftLeg=new THREE.Mesh(
 new THREE.BoxGeometry(0.3,1,0.3),
-new THREE.MeshStandardMaterial({color:0xffffff})
+mat
 )
 
 leftLeg.position.set(-0.25,0.4,0)
 character.add(leftLeg)
 
-const rightLeg = new THREE.Mesh(
+const rightLeg=new THREE.Mesh(
 new THREE.BoxGeometry(0.3,1,0.3),
-new THREE.MeshStandardMaterial({color:0xffffff})
+mat
 )
 
 rightLeg.position.set(0.25,0.4,0)
@@ -239,40 +230,17 @@ scene.add(character)
 
 /* HALL */
 
-const hall = new THREE.Mesh(
+const hall=new THREE.Mesh(
 new THREE.BoxGeometry(16,10,16),
-new THREE.MeshStandardMaterial({
-color:0xff7a00,
-metalness:0.6,
-roughness:0.3,
-emissive:0x331100,
-emissiveIntensity:1.2
-})
+new THREE.MeshStandardMaterial({color:0xff7a00})
 )
 
 hall.position.set(0,5,-50)
 scene.add(hall)
 
-/* PILLARS */
+/* STAGE */
 
-function pillar(x){
-
-const p = new THREE.Mesh(
-new THREE.CylinderGeometry(0.6,0.6,8,32),
-new THREE.MeshStandardMaterial({color:0x111111})
-)
-
-p.position.set(x,4,-48)
-scene.add(p)
-
-}
-
-pillar(-6)
-pillar(6)
-
-/* STAGE FLOOR */
-
-const stage = new THREE.Mesh(
+const stage=new THREE.Mesh(
 new THREE.BoxGeometry(14,1,8),
 new THREE.MeshStandardMaterial({
 color:0xd4af37,
@@ -286,70 +254,34 @@ scene.add(stage)
 
 /* DRUM KIT */
 
-const drumBase = new THREE.Mesh(
+const drum=new THREE.Mesh(
 new THREE.CylinderGeometry(1,1,0.8,32),
 new THREE.MeshStandardMaterial({color:0xffffff})
 )
 
-drumBase.position.set(0,1,-43)
-scene.add(drumBase)
+drum.position.set(0,1,-43)
+scene.add(drum)
 
-const drumTop = new THREE.Mesh(
-new THREE.CylinderGeometry(1.2,1.2,0.1,32),
-new THREE.MeshStandardMaterial({color:0xcccccc})
-)
+/* GUITARS */
 
-drumTop.position.set(0,1.5,-43)
-scene.add(drumTop)
+function guitar(x){
 
-
-/* CYMBALS */
-
-function cymbal(x){
-
-const stand = new THREE.Mesh(
-new THREE.CylinderGeometry(0.05,0.05,2),
-new THREE.MeshStandardMaterial({color:0xaaaaaa})
-)
-
-stand.position.set(x,2,-43)
-scene.add(stand)
-
-const plate = new THREE.Mesh(
-new THREE.CylinderGeometry(0.8,0.8,0.05,32),
-new THREE.MeshStandardMaterial({color:0xffd700})
-)
-
-plate.position.set(x,2.8,-43)
-scene.add(plate)
-
-}
-
-cymbal(-1.8)
-cymbal(1.8)
-
-
-/* GUITARISTS */
-
-function guitarPlayer(x){
-
-const guitar = new THREE.Mesh(
+const g=new THREE.Mesh(
 new THREE.BoxGeometry(0.8,1.6,0.3),
 new THREE.MeshStandardMaterial({color:0xff7a00})
 )
 
-guitar.position.set(x,1,-41)
-scene.add(guitar)
+g.position.set(x,1,-41)
+scene.add(g)
 
 }
 
-guitarPlayer(-4)
-guitarPlayer(4)
-
+guitar(-4)
+guitar(4)
 
 /* MICROPHONE */
 
-const micStand = new THREE.Mesh(
+const micStand=new THREE.Mesh(
 new THREE.CylinderGeometry(0.05,0.05,2.5),
 new THREE.MeshStandardMaterial({color:0xaaaaaa})
 )
@@ -357,19 +289,11 @@ new THREE.MeshStandardMaterial({color:0xaaaaaa})
 micStand.position.set(0,1.3,-40)
 scene.add(micStand)
 
-const micHead = new THREE.Mesh(
-new THREE.SphereGeometry(0.12),
-new THREE.MeshStandardMaterial({color:0x222222})
-)
-
-micHead.position.set(0,2.6,-40)
-scene.add(micHead)
-
 /* SPEAKERS */
 
 function speaker(x){
 
-const s = new THREE.Mesh(
+const s=new THREE.Mesh(
 new THREE.BoxGeometry(3,8,3),
 new THREE.MeshStandardMaterial({color:0x111111})
 )
@@ -382,20 +306,23 @@ scene.add(s)
 speaker(-10)
 speaker(10)
 
-/* CONCERT LIGHTS */
+/* STAGE LIGHTS */
 
 let stageLights=[]
 
 function createStageLight(x){
 
-const light = new THREE.SpotLight(0xff7a00,10)
-
+const light=new THREE.SpotLight(0xff7a00,10)
 light.position.set(x,12,-40)
+light.angle=Math.PI/7
+light.penumbra=0.6
+light.distance=120
 
-light.angle = Math.PI/7
-light.penumbra = 0.6
-light.decay = 2
-light.distance = 120
+const target=new THREE.Object3D()
+target.position.set(0,0,-42)
+scene.add(target)
+
+light.target=target
 
 scene.add(light)
 
@@ -409,16 +336,6 @@ createStageLight(0)
 createStageLight(4)
 createStageLight(8)
 
-/* CONCERT LIGHT SWEEP */
-
-stageLights.forEach((light,i)=>{
-
-light.target.position.x =
-Math.sin(Date.now()*0.001 + i)*6
-
-scene.add(light.target)
-
-})
 /* FIREWORKS */
 
 let fireworks=[]
@@ -427,9 +344,9 @@ function createFirework(){
 
 const colors=[0xff7a00,0xffffff,0x4488ff]
 
-for(let i=0;i<250;i++){
+for(let i=0;i<200;i++){
 
-const p = new THREE.Mesh(
+const p=new THREE.Mesh(
 new THREE.SphereGeometry(0.25),
 new THREE.MeshBasicMaterial({
 color:colors[Math.floor(Math.random()*colors.length)]
@@ -454,20 +371,12 @@ fireworks.push(p)
 /* MOVEMENT */
 
 let moving=false
+let stopZ=-38
 
 document.getElementById("moveBtn").onclick=function(){
 
 moving=true
 this.style.display="none"
-
-setTimeout(()=>{
-
-document.getElementById("title").style.display="block"
-document.getElementById("song").play()
-
-setInterval(createFirework,700)
-
-},5000)
 
 }
 
@@ -477,13 +386,11 @@ function animate(){
 
 requestAnimationFrame(animate)
 
-/* STAR MOTION */
-
 stars.rotation.y+=0.0002
 
-/* WALK */
-
 if(moving){
+
+if(character.position.z>stopZ){
 
 character.position.z-=0.09
 camera.position.z-=0.09
@@ -495,25 +402,27 @@ rightLeg.rotation.x=-walk
 leftArm.rotation.x=-walk
 rightArm.rotation.x=walk
 
+}else{
+
+moving=false
+
+document.getElementById("title").style.display="block"
+document.getElementById("song").play()
+
+setInterval(createFirework,700)
+
 }
 
-/* FIREWORKS */
+}
+
+/* FIREWORK PHYSICS */
 
 fireworks.forEach(p=>{
 
 p.position.x+=p.v.x
 p.position.y+=p.v.y
 p.position.z+=p.v.z
-
 p.v.y-=0.05
-
-})
-
-/* LASERS */
-
-lasers.forEach((laser,i)=>{
-
-laser.rotation.z=Math.sin(Date.now()*0.001+i)*0.6
 
 })
 
