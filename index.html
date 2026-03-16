@@ -1,36 +1,171 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-<title>Treble Dusk Test</title>
+<title>Treble Dusk 7.0</title>
+
 <style>
 
 body{
-background:#0b4da2;
-color:white;
+margin:0;
+overflow:hidden;
 font-family:Arial;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+}
+
+#moveBtn{
+position:absolute;
+bottom:30px;
+left:30px;
+padding:15px 30px;
+font-size:18px;
+background:#ff7a00;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+#title{
+position:absolute;
+top:40%;
+width:100%;
+text-align:center;
+color:white;
+display:none;
+}
+
+#title h1{
+font-size:80px;
+color:#ff7a00;
 margin:0;
 }
 
-h1{
-color:orange;
-font-size:60px;
+#title h2{
+font-size:35px;
+margin-top:10px;
 }
 
 </style>
+
 </head>
+
 
 <body>
 
-<div>
+<button id="moveBtn">Move Forward →</button>
+
+<div id="title">
 <h1>Treble Dusk 7.0</h1>
-<p>If you see this, GitHub Pages works.</p>
+<h2>Register Now!</h2>
 </div>
 
-</body>
+<audio id="song">
+<source src="song.mp3" type="audio/mpeg">
+</audio>
 
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+
+<script>
+
+let scene = new THREE.Scene()
+scene.background = new THREE.Color(0x0b4da2)
+
+let camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
+)
+
+let renderer = new THREE.WebGLRenderer()
+renderer.setSize(window.innerWidth,window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+camera.position.set(0,4,8)
+
+/* LIGHT */
+
+let light = new THREE.DirectionalLight(0xffffff,1)
+light.position.set(5,10,7)
+scene.add(light)
+
+/* GROUND */
+
+let groundGeo = new THREE.PlaneGeometry(50,50)
+let groundMat = new THREE.MeshPhongMaterial({color:0xffffff})
+let ground = new THREE.Mesh(groundGeo,groundMat)
+
+ground.rotation.x = -Math.PI/2
+scene.add(ground)
+
+/* CHARACTER */
+
+let charGeo = new THREE.BoxGeometry(1,2,1)
+let charMat = new THREE.MeshPhongMaterial({color:0xffffff})
+
+let character = new THREE.Mesh(charGeo,charMat)
+
+character.position.y = 1
+scene.add(character)
+
+/* MULTIPURPOSE HALL */
+
+let hallGeo = new THREE.BoxGeometry(6,4,6)
+let hallMat = new THREE.MeshPhongMaterial({color:0xff7a00})
+
+let hall = new THREE.Mesh(hallGeo,hallMat)
+
+hall.position.set(0,2,-20)
+
+scene.add(hall)
+
+/* MOVE BUTTON */
+
+let moving=false
+
+document.getElementById("moveBtn").onclick=function(){
+
+moving=true
+this.style.display="none"
+
+setTimeout(()=>{
+celebrate()
+},5000)
+
+}
+
+/* CELEBRATION */
+
+function celebrate(){
+
+document.getElementById("title").style.display="block"
+
+document.getElementById("song").play()
+
+}
+
+/* ANIMATION */
+
+function animate(){
+
+requestAnimationFrame(animate)
+
+if(moving){
+
+character.position.z -= 0.05
+
+camera.position.z -= 0.05
+
+}
+
+renderer.render(scene,camera)
+
+}
+
+animate()
+
+</script>
+
+</body>
 </html>
