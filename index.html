@@ -401,6 +401,54 @@ scene.add(s)
 speaker(-12)
 speaker(12)
 
+/* CROWD */
+
+const crowd=[]
+
+function createPerson(x,z){
+
+const person=new THREE.Group()
+
+/* body */
+
+const body=new THREE.Mesh(
+new THREE.CylinderGeometry(0.25,0.35,1.2),
+new THREE.MeshStandardMaterial({color:0x111111})
+)
+
+body.position.y=0.6
+
+/* head */
+
+const head=new THREE.Mesh(
+new THREE.SphereGeometry(0.25),
+new THREE.MeshStandardMaterial({color:0x111111})
+)
+
+head.position.y=1.5
+
+person.add(body)
+person.add(head)
+
+person.position.set(x,0,z)
+
+scene.add(person)
+
+crowd.push(person)
+
+}
+
+/* generate crowd */
+
+for(let i=0;i<250;i++){
+
+const x=(Math.random()-0.5)*30
+const z=-25 - Math.random()*10
+
+createPerson(x,z)
+
+}
+
 /* STAGE LIGHTS */
 
 let stageLights=[]
