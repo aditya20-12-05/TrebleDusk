@@ -111,6 +111,38 @@ let ground = new THREE.Mesh(groundGeo,groundMat)
 ground.rotation.x = -Math.PI/2
 scene.add(ground)
 
+/* SKY STARS */
+
+let starGeo = new THREE.BufferGeometry()
+let starCount = 1000
+
+let positions = []
+
+for(let i=0;i<starCount;i++){
+
+positions.push(
+(Math.random()-0.5)*400,
+Math.random()*200,
+(Math.random()-0.5)*400
+
+)
+
+}
+
+starGeo.setAttribute(
+"position",
+new THREE.Float32BufferAttribute(positions,3)
+)
+
+let starMat = new THREE.PointsMaterial({
+color:0xffffff,
+size:1
+})
+
+let stars = new THREE.Points(starGeo,starMat)
+
+scene.add(stars)
+
 /* PATH */
 
 let pathGeo = new THREE.PlaneGeometry(5,200)
