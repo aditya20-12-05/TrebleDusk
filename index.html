@@ -69,13 +69,13 @@ font-size:36px;
 
 /* SCENE */
 
-const scene=new THREE.Scene()
-scene.background=new THREE.Color(0x020312)
-scene.fog=new THREE.Fog(0x020312,40,200)
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0x020312)
+scene.fog = new THREE.Fog(0x020312,40,200)
 
 /* CAMERA */
 
-const camera=new THREE.PerspectiveCamera(
+const camera = new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
@@ -86,44 +86,44 @@ camera.position.set(0,4,12)
 
 /* RENDERER */
 
-const renderer=new THREE.WebGLRenderer({antialias:true})
+const renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-/* LIGHTING */
+/* LIGHT */
 
 scene.add(new THREE.AmbientLight(0xffffff,0.4))
 
-const moonLight=new THREE.DirectionalLight(0x99aaff,0.9)
+const moonLight = new THREE.DirectionalLight(0x99aaff,0.9)
 moonLight.position.set(20,40,10)
 scene.add(moonLight)
 
 /* GROUND */
 
-const ground=new THREE.Mesh(
+const ground = new THREE.Mesh(
 new THREE.PlaneGeometry(600,600),
 new THREE.MeshStandardMaterial({color:0x12122a})
 )
 
-ground.rotation.x=-Math.PI/2
+ground.rotation.x = -Math.PI/2
 scene.add(ground)
 
 /* PATH */
 
-const path=new THREE.Mesh(
+const path = new THREE.Mesh(
 new THREE.PlaneGeometry(6,200),
 new THREE.MeshStandardMaterial({color:0x2c2c40})
 )
 
-path.rotation.x=-Math.PI/2
-path.position.y=0.01
+path.rotation.x = -Math.PI/2
+path.position.y = 0.01
 scene.add(path)
 
 /* PATH LIGHTS */
 
 for(let i=0;i<14;i++){
 
-const light=new THREE.PointLight(0xff7a00,2,25)
+const light = new THREE.PointLight(0xff7a00,2,25)
 
 light.position.set(
 (i-7)*2,
@@ -137,7 +137,7 @@ scene.add(light)
 
 /* STARS */
 
-const starGeo=new THREE.BufferGeometry()
+const starGeo = new THREE.BufferGeometry()
 let starVerts=[]
 
 for(let i=0;i<5000;i++){
@@ -155,7 +155,7 @@ starGeo.setAttribute(
 new THREE.Float32BufferAttribute(starVerts,3)
 )
 
-const stars=new THREE.Points(
+const stars = new THREE.Points(
 starGeo,
 new THREE.PointsMaterial({color:0xffffff,size:2})
 )
@@ -164,7 +164,7 @@ scene.add(stars)
 
 /* MOON */
 
-const moon=new THREE.Mesh(
+const moon = new THREE.Mesh(
 new THREE.SphereGeometry(30,32,32),
 new THREE.MeshStandardMaterial({color:0xffffdd})
 )
@@ -174,27 +174,30 @@ scene.add(moon)
 
 /* CHARACTER */
 
-const character=new THREE.Group()
+const character = new THREE.Group()
 
-const charMat=new THREE.MeshStandardMaterial({color:0xffff00})
+const charMat = new THREE.MeshStandardMaterial({color:0xffff00})
 
 function limb(w,h,x,y){
-const m=new THREE.Mesh(
+
+const m = new THREE.Mesh(
 new THREE.BoxGeometry(w,h,w),
 charMat
 )
+
 m.position.set(x,y,0)
 return m
+
 }
 
-const body=limb(.8,1.5,0,1.2)
-const head=new THREE.Mesh(new THREE.SphereGeometry(.4),charMat)
-head.position.y=2.2
+const body = limb(.8,1.5,0,1.2)
+const head = new THREE.Mesh(new THREE.SphereGeometry(.4),charMat)
+head.position.y = 2.2
 
-const leftArm=limb(.25,1,-.65,1.2)
-const rightArm=limb(.25,1,.65,1.2)
-const leftLeg=limb(.3,1,-.25,.4)
-const rightLeg=limb(.3,1,.25,.4)
+const leftArm = limb(.25,1,-.65,1.2)
+const rightArm = limb(.25,1,.65,1.2)
+const leftLeg = limb(.3,1,-.25,.4)
+const rightLeg = limb(.3,1,.25,.4)
 
 character.add(body,head,leftArm,rightArm,leftLeg,rightLeg)
 
@@ -202,7 +205,7 @@ scene.add(character)
 
 /* HALL */
 
-const hall=new THREE.Mesh(
+const hall = new THREE.Mesh(
 new THREE.BoxGeometry(18,12,18),
 new THREE.MeshStandardMaterial({
 color:0xff7a00,
@@ -214,26 +217,9 @@ roughness:.3
 hall.position.set(0,6,-55)
 scene.add(hall)
 
-/* PILLARS */
-
-function pillar(x){
-
-const p=new THREE.Mesh(
-new THREE.CylinderGeometry(.8,.8,10,32),
-new THREE.MeshStandardMaterial({color:0x111111})
-)
-
-p.position.set(x,5,-52)
-scene.add(p)
-
-}
-
-pillar(-7)
-pillar(7)
-
 /* STAGE */
 
-const stage=new THREE.Mesh(
+const stage = new THREE.Mesh(
 new THREE.BoxGeometry(16,1,10),
 new THREE.MeshStandardMaterial({
 color:0xd4af37,
@@ -247,7 +233,7 @@ scene.add(stage)
 
 /* DRUM KIT */
 
-const drum=new THREE.Mesh(
+const drum = new THREE.Mesh(
 new THREE.CylinderGeometry(1.5,1.5,1,32),
 new THREE.MeshStandardMaterial({color:0xffffff})
 )
@@ -255,45 +241,20 @@ new THREE.MeshStandardMaterial({color:0xffffff})
 drum.position.set(0,1.2,-44)
 scene.add(drum)
 
-/* CYMBALS */
-
-function cymbal(x){
-
-const stand=new THREE.Mesh(
-new THREE.CylinderGeometry(.05,.05,2.5),
-new THREE.MeshStandardMaterial({color:0xaaaaaa})
-)
-
-stand.position.set(x,2.3,-44)
-scene.add(stand)
-
-const plate=new THREE.Mesh(
-new THREE.CylinderGeometry(1,1,.1,32),
-new THREE.MeshStandardMaterial({color:0xffd700})
-)
-
-plate.position.set(x,3.4,-44)
-scene.add(plate)
-
-}
-
-cymbal(-2)
-cymbal(2)
-
 /* GUITARISTS */
 
 function guitarist(x,color){
 
-const g=new THREE.Group()
+const g = new THREE.Group()
 
-const body=new THREE.Mesh(
+const body = new THREE.Mesh(
 new THREE.BoxGeometry(1,1.8,.6),
 new THREE.MeshStandardMaterial({color})
 )
 
 body.position.y=1
 
-const head=new THREE.Mesh(
+const head = new THREE.Mesh(
 new THREE.SphereGeometry(.45),
 new THREE.MeshStandardMaterial({color})
 )
@@ -313,7 +274,7 @@ guitarist(5,0x44ff88)
 
 /* SINGER */
 
-const singer=new THREE.Mesh(
+const singer = new THREE.Mesh(
 new THREE.CylinderGeometry(.7,.8,2),
 new THREE.MeshStandardMaterial({color:0xffffff})
 )
@@ -321,21 +282,11 @@ new THREE.MeshStandardMaterial({color:0xffffff})
 singer.position.set(0,1,-39)
 scene.add(singer)
 
-/* MICROPHONE */
-
-const mic=new THREE.Mesh(
-new THREE.CylinderGeometry(.05,.05,2.5),
-new THREE.MeshStandardMaterial({color:0xaaaaaa})
-)
-
-mic.position.set(0,1.3,-39)
-scene.add(mic)
-
 /* SPEAKERS */
 
 function speaker(x){
 
-const s=new THREE.Mesh(
+const s = new THREE.Mesh(
 new THREE.BoxGeometry(3,8,3),
 new THREE.MeshStandardMaterial({
 color:0xaa00ff,
@@ -409,6 +360,13 @@ if(character.position.z>stopZ){
 
 character.position.z-=.09
 camera.position.z-=.09
+
+const walk=Math.sin(Date.now()*0.01)
+
+leftLeg.rotation.x=walk
+rightLeg.rotation.x=-walk
+leftArm.rotation.x=-walk
+rightArm.rotation.x=walk
 
 }else{
 
