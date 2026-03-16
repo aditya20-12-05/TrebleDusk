@@ -170,6 +170,10 @@ let hallMat = new THREE.MeshPhongMaterial({color:0xff7a00})
 let hall = new THREE.Mesh(hallGeo,hallMat)
 hall.position.set(0,3,-40)
 scene.add(hall)
+  
+let glowLight = new THREE.PointLight(0xff7a00,2,50)
+glowLight.position.set(0,8,-40)
+scene.add(glowLight)
 
 /* STAGE LIGHTS */
 
@@ -262,8 +266,9 @@ requestAnimationFrame(animate)
 if(moving){
 
 character.position.z -= 0.08
-
 camera.position.z -= 0.08
+
+character.position.y = 1 + Math.sin(Date.now()*0.01)*0.1
 
 }
 
