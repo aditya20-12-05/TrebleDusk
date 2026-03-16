@@ -9,11 +9,9 @@
 body{
 margin:0;
 overflow:hidden;
-font-family:Arial;
 background:black;
+font-family:Arial;
 }
-
-/* BUTTON */
 
 #moveBtn{
 position:absolute;
@@ -29,8 +27,6 @@ cursor:pointer;
 z-index:10;
 }
 
-/* TITLE */
-
 #title{
 position:absolute;
 top:40%;
@@ -44,13 +40,11 @@ z-index:10;
 #title h1{
 font-size:90px;
 color:#ff7a00;
-margin:0;
-text-shadow:0 0 40px orange,0 0 80px orange;
+text-shadow:0 0 40px orange;
 }
 
 #title h2{
-font-size:36px;
-margin-top:10px;
+font-size:35px;
 }
 
 </style>
@@ -70,18 +64,17 @@ margin-top:10px;
 </audio>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
 
 /* SCENE */
 
-let scene = new THREE.Scene()
-scene.background = new THREE.Color(0x020412)
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0x01030a)
 
 /* CAMERA */
 
-let camera = new THREE.PerspectiveCamera(
+const camera = new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
@@ -92,169 +85,208 @@ camera.position.set(0,4,12)
 
 /* RENDERER */
 
-let renderer = new THREE.WebGLRenderer({antialias:true})
+const renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-/* LIGHTING */
+/* LIGHT */
 
-let ambient = new THREE.AmbientLight(0xffffff,0.3)
+const ambient = new THREE.AmbientLight(0xffffff,0.3)
 scene.add(ambient)
 
-let moonLight = new THREE.DirectionalLight(0x99aaff,0.7)
-moonLight.position.set(10,20,5)
-scene.add(moonLight)
+const moon = new THREE.DirectionalLight(0x99aaff,0.7)
+moon.position.set(20,30,10)
+scene.add(moon)
 
 /* GROUND */
 
-let groundGeo = new THREE.PlaneGeometry(400,400)
-let groundMat = new THREE.MeshStandardMaterial({color:0xffffff})
+const ground = new THREE.Mesh(
+new THREE.PlaneGeometry(400,400),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
 
-let ground = new THREE.Mesh(groundGeo,groundMat)
 ground.rotation.x = -Math.PI/2
 scene.add(ground)
 
 /* PATH */
 
-let pathGeo = new THREE.PlaneGeometry(6,200)
-let pathMat = new THREE.MeshStandardMaterial({color:0x777777})
+const path = new THREE.Mesh(
+new THREE.PlaneGeometry(6,200),
+new THREE.MeshStandardMaterial({color:0x666666})
+)
 
-let path = new THREE.Mesh(pathGeo,pathMat)
-path.rotation.x = -Math.PI/2
-path.position.y = 0.01
+path.rotation.x=-Math.PI/2
+path.position.y=0.01
 scene.add(path)
 
 /* STARS */
 
-let starGeo = new THREE.BufferGeometry()
-let starCount = 2000
-let positions = []
+const starGeo = new THREE.BufferGeometry()
+const starCount = 3000
+let starVerts = []
 
 for(let i=0;i<starCount;i++){
 
-positions.push(
-(Math.random()-0.5)*800,
-Math.random()*400,
-(Math.random()-0.5)*800
+starVerts.push(
+(Math.random()-0.5)*1000,
+Math.random()*500,
+(Math.random()-0.5)*1000
 )
 
 }
 
 starGeo.setAttribute(
-"position",
-new THREE.Float32BufferAttribute(positions,3)
+'position',
+new THREE.Float32BufferAttribute(starVerts,3)
 )
 
-let starMat = new THREE.PointsMaterial({
-color:0xffffff,
-size:1.5
-})
+const stars = new THREE.Points(
+starGeo,
+new THREE.PointsMaterial({color:0xffffff,size:1.5})
+)
 
-let stars = new THREE.Points(starGeo,starMat)
 scene.add(stars)
 
 /* PLANETS */
 
 function createPlanet(size,color,x,y,z){
 
-let geo = new THREE.SphereGeometry(size,32,32)
-let mat = new THREE.MeshStandardMaterial({color:color})
-
-let planet = new THREE.Mesh(geo,mat)
+const planet = new THREE.Mesh(
+new THREE.SphereGeometry(size,32,32),
+new THREE.MeshStandardMaterial({color:color})
+)
 
 planet.position.set(x,y,z)
-
 scene.add(planet)
 
 }
 
-createPlanet(5,0xff8844,-60,80,-120)
-createPlanet(3,0x44aaff,80,120,-200)
-createPlanet(4,0xaa66ff,120,60,-180)
+createPlanet(6,0xff8844,-120,120,-200)
+createPlanet(4,0x44aaff,150,150,-300)
+createPlanet(5,0xaa66ff,200,80,-250)
+
+/* CHARACTER (stylized humanoid) */
+
+const body = new THREE.Mesh(
+new THREE.CylinderGeometry(0.4,0.5,2),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+body.position.y=1
+
+const head = new THREE.Mesh(
+new THREE.SphereGeometry(0.45),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+head.position.y=2.3
+
+const character = new THREE.Group()
+character.add(body)
+character.add(head)
+
+scene.add(character)
 
 /* MULTIPURPOSE HALL */
 
-let hallGeo = new THREE.BoxGeometry(14,8,14)
-
-let hallMat = new THREE.MeshStandardMaterial({
+const hall = new THREE.Mesh(
+new THREE.BoxGeometry(14,8,14),
+new THREE.MeshStandardMaterial({
 color:0xff7a00,
 emissive:0x441100,
-emissiveIntensity:0.9
+emissiveIntensity:1
 })
+)
 
-let hall = new THREE.Mesh(hallGeo,hallMat)
 hall.position.set(0,4,-50)
 scene.add(hall)
 
 /* SPEAKERS */
 
-let speakerGeo = new THREE.BoxGeometry(2,4,2)
-let speakerMat = new THREE.MeshStandardMaterial({color:0x111111})
+function speaker(x){
 
-let speaker1 = new THREE.Mesh(speakerGeo,speakerMat)
-speaker1.position.set(-7,2,-45)
-scene.add(speaker1)
+const s = new THREE.Mesh(
+new THREE.BoxGeometry(2,4,2),
+new THREE.MeshStandardMaterial({color:0x111111})
+)
 
-let speaker2 = new THREE.Mesh(speakerGeo,speakerMat)
-speaker2.position.set(7,2,-45)
-scene.add(speaker2)
+s.position.set(x,2,-45)
+scene.add(s)
 
-/* CHARACTER */
+}
 
-let loader = new THREE.GLTFLoader()
-let character
-let mixer
+speaker(-8)
+speaker(8)
 
-loader.load("character.glb",function(gltf){
+/* LIGHTS */
 
-character = gltf.scene
-character.scale.set(1.5,1.5,1.5)
-character.position.set(0,0,0)
+for(let i=0;i<10;i++){
 
-scene.add(character)
+const light = new THREE.PointLight(0xff7a00,2,50)
 
-mixer = new THREE.AnimationMixer(character)
+light.position.set((i-5)*2,3,-40)
 
-let action = mixer.clipAction(gltf.animations[0])
-action.play()
+scene.add(light)
 
-})
+}
 
 /* FIREWORKS */
 
-let particles=[]
+let fireworks=[]
 
 function createFirework(){
 
-let colors=[0xff7a00,0xffffff,0x4488ff]
+const colors=[0xff7a00,0xffffff,0x4488ff]
 
-for(let i=0;i<120;i++){
+for(let i=0;i<150;i++){
 
-let geo = new THREE.SphereGeometry(0.12)
-let mat = new THREE.MeshBasicMaterial({
+const p = new THREE.Mesh(
+new THREE.SphereGeometry(0.12),
+new THREE.MeshBasicMaterial({
 color:colors[Math.floor(Math.random()*colors.length)]
 })
-
-let p = new THREE.Mesh(geo,mat)
-
-p.position.set(
-Math.random()*20-10,
-12,
--50
 )
 
-p.velocity = {
+p.position.set(Math.random()*20-10,15,-50)
+
+p.v={
 x:(Math.random()-0.5)*0.6,
-y:Math.random()*1,
+y:Math.random()*1.2,
 z:(Math.random()-0.5)*0.6
 }
 
 scene.add(p)
-particles.push(p)
+fireworks.push(p)
 
 }
 
 }
+
+/* SHOOTING STARS */
+
+let shooting=[]
+
+function createShootingStar(){
+
+const star = new THREE.Mesh(
+new THREE.SphereGeometry(0.2),
+new THREE.MeshBasicMaterial({color:0xffffff})
+)
+
+star.position.set(
+(Math.random()-0.5)*200,
+200,
+-200
+)
+
+star.v={x:-2,y:-1,z:0}
+
+scene.add(star)
+shooting.push(star)
+
+}
+
+setInterval(createShootingStar,4000)
 
 /* MOVEMENT */
 
@@ -271,44 +303,51 @@ celebrate()
 
 }
 
-/* CELEBRATION */
-
 function celebrate(){
 
 document.getElementById("title").style.display="block"
 
 document.getElementById("song").play()
 
-setInterval(()=>{
-createFirework()
-},900)
+setInterval(createFirework,800)
 
 }
 
-let clock = new THREE.Clock()
+/* ANIMATION */
 
 function animate(){
 
 requestAnimationFrame(animate)
 
-let delta = clock.getDelta()
+/* WALKING */
 
-if(mixer) mixer.update(delta)
+if(moving){
 
-if(moving && character){
+character.position.z -=0.09
+camera.position.z -=0.09
 
-character.position.z -= 0.09
-camera.position.z -= 0.09
+character.position.y = 0 + Math.sin(Date.now()*0.01)*0.1
 
 }
 
-particles.forEach(p=>{
+/* FIREWORK PHYSICS */
 
-p.position.x += p.velocity.x
-p.position.y += p.velocity.y
-p.position.z += p.velocity.z
+fireworks.forEach(p=>{
 
-p.velocity.y -= 0.03
+p.position.x += p.v.x
+p.position.y += p.v.y
+p.position.z += p.v.z
+
+p.v.y -=0.03
+
+})
+
+/* SHOOTING STARS */
+
+shooting.forEach(s=>{
+
+s.position.x+=s.v.x
+s.position.y+=s.v.y
 
 })
 
