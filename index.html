@@ -23,6 +23,7 @@ border:none;
 border-radius:8px;
 cursor:pointer;
 z-index:10;
+display:none;
 }
 
 #title{
@@ -511,8 +512,12 @@ fireworks.push(p)
 
 /* MOVEMENT */
 
+let intro=true
 let moving=false
 let dancing=false
+
+let introTime=0
+
 const stopZ=-32
 
 document.getElementById("moveBtn").onclick=function(){
@@ -529,6 +534,23 @@ function animate(){
 requestAnimationFrame(animate)
 
 stars.rotation.y+=0.0002
+
+/* CINEMATIC INTRO */
+
+if(intro){
+
+camera.position.z -= 0.02
+introTime++
+
+if(introTime > 300){
+
+intro=false
+
+document.getElementById("moveBtn").style.display="block"
+
+}
+
+}
 
 /* WALK */
 
