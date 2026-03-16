@@ -95,6 +95,31 @@ const moonLight=new THREE.DirectionalLight(0x99aaff,0.9)
 moonLight.position.set(20,40,10)
 scene.add(moonLight)
 
+/* PLANETS */
+
+function createPlanet(size,color,x,y,z){
+
+const planet=new THREE.Mesh(
+new THREE.SphereGeometry(size,32,32),
+new THREE.MeshStandardMaterial({
+color:color,
+emissive:color,
+emissiveIntensity:0.2
+})
+)
+
+planet.position.set(x,y,z)
+
+scene.add(planet)
+
+}
+
+/* Add several planets */
+
+createPlanet(40,0xff8844,-600,200,-900)
+createPlanet(30,0x44aaff,700,300,-1000)
+createPlanet(35,0xaa66ff,500,120,-800)
+
 /* GROUND */
 
 const ground=new THREE.Mesh(
@@ -116,19 +141,49 @@ path.rotation.x=-Math.PI/2
 path.position.y=0.01
 scene.add(path)
 
-/* PATH LIGHTS */
+/* WALKWAY LAMPS */
 
-for(let i=0;i<14;i++){
+function createLamp(x,z){
 
-const light=new THREE.PointLight(0xff7a00,2,25)
+/* pole */
 
-light.position.set(
-(i-7)*2,
-0.5,
--20-i*6
+const pole=new THREE.Mesh(
+new THREE.CylinderGeometry(0.08,0.08,3,16),
+new THREE.MeshStandardMaterial({color:0x555555})
 )
 
+pole.position.set(x,1.5,z)
+scene.add(pole)
+
+/* lamp head */
+
+const bulb=new THREE.Mesh(
+new THREE.SphereGeometry(0.2),
+new THREE.MeshStandardMaterial({
+color:0xffcc66,
+emissive:0xffaa33,
+emissiveIntensity:2
+})
+)
+
+bulb.position.set(x,3,z)
+scene.add(bulb)
+
+/* light */
+
+const light=new THREE.PointLight(0xffaa33,2,18)
+light.position.set(x,3,z)
+
 scene.add(light)
+
+}
+
+/* create lamps along walkway */
+
+for(let i=0;i<12;i++){
+
+createLamp(-2.5,-20-i*8)
+createLamp(2.5,-20-i*8)
 
 }
 
