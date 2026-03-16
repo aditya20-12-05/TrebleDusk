@@ -111,12 +111,9 @@ emissiveIntensity:0.2
 )
 
 planet.position.set(x,y,z)
-
 scene.add(planet)
 
 }
-
-/* Add several planets */
 
 createPlanet(40,0xff8844,-600,200,-900)
 createPlanet(30,0x44aaff,700,300,-1000)
@@ -147,8 +144,6 @@ scene.add(path)
 
 function createLamp(x,z){
 
-/* pole */
-
 const pole=new THREE.Mesh(
 new THREE.CylinderGeometry(0.08,0.08,3,16),
 new THREE.MeshStandardMaterial({color:0x555555})
@@ -156,8 +151,6 @@ new THREE.MeshStandardMaterial({color:0x555555})
 
 pole.position.set(x,1.5,z)
 scene.add(pole)
-
-/* lamp head */
 
 const bulb=new THREE.Mesh(
 new THREE.SphereGeometry(0.2),
@@ -171,16 +164,12 @@ emissiveIntensity:2
 bulb.position.set(x,3,z)
 scene.add(bulb)
 
-/* light */
-
 const light=new THREE.PointLight(0xffaa33,1.2,10)
 light.position.set(x,3,z)
 
 scene.add(light)
 
 }
-
-/* create lamps along walkway */
 
 for(let i=0;i<12;i++){
 
@@ -407,53 +396,21 @@ speaker(12)
 
 const crowd=[]
 
-function createPerson(x,z){
+for(let i=0;i<250;i++){
 
-const person=new THREE.Group()
-
-/* body */
-
-const body=new THREE.Mesh(
-new THREE.CylinderGeometry(0.25,0.35,1.2),
+const person=new THREE.Mesh(
+new THREE.CylinderGeometry(0.3,0.4,1.2),
 new THREE.MeshStandardMaterial({color:0x111111})
 )
 
-body.position.y=0.6
-
-/* head */
-
-const head=new THREE.Mesh(
-new THREE.SphereGeometry(0.25),
-new THREE.MeshStandardMaterial({color:0x111111})
-)
-
-head.position.y=1.5
-
-person.add(body)
-person.add(head)
-
-person.position.set(x,0,z)
+person.position.set((Math.random()-0.5)*30,0,-25-Math.random()*10)
 
 scene.add(person)
-
 crowd.push(person)
 
 }
 
-/* generate crowd */
-
-for(let i=0;i<250;i++){
-
-const x=(Math.random()-0.5)*30
-const z=-25 - Math.random()*10
-
-createPerson(x,z)
-
-}
-
 /* STAGE LIGHTS */
-
-let stageLights=[]
 
 function createLight(x){
 
@@ -471,8 +428,6 @@ light.target=target
 
 scene.add(light)
 
-stageLights.push(light)
-
 }
 
 createLight(-8)
@@ -481,20 +436,18 @@ createLight(0)
 createLight(4)
 createLight(8)
 
-fireworks.forEach((p,i)=>{
+/* FIREWORKS */
 
-p.position.x+=p.v.x
-p.position.y+=p.v.y
-p.position.z+=p.v.z
-p.v.y-=.05
+let fireworks=[]
 
-if(p.position.y < -5){
+function createFirework(){
 
-scene.remove(p)
-fireworks.splice(i,1)
+for(let i=0;i<80;i++){
 
-}
-
+const p=new THREE.Mesh(
+new THREE.SphereGeometry(.25),
+new THREE.MeshBasicMaterial({
+color:[0xff7a00,0xffffff,0x4488ff][Math.floor(Math.random()*3)]
 })
 )
 
@@ -518,16 +471,12 @@ fireworks.push(p)
 let intro=true
 let moving=false
 let dancing=false
-
 let introTime=0
-
 const stopZ=-32
 
 document.getElementById("moveBtn").onclick=function(){
-
 moving=true
 this.style.display="none"
-
 }
 
 /* ANIMATION */
@@ -538,24 +487,15 @@ requestAnimationFrame(animate)
 
 stars.rotation.y+=0.0002
 
-/* CINEMATIC INTRO */
-
 if(intro){
-
 camera.position.z -= 0.02
 introTime++
 
 if(introTime > 300){
-
 intro=false
-
 document.getElementById("moveBtn").style.display="block"
-
 }
-
 }
-
-/* WALK */
 
 if(moving){
 
@@ -585,22 +525,29 @@ setInterval(createFirework,700)
 
 }
 
-/* DANCE */
-
 if(dancing){
 
 character.rotation.y+=0.05
 character.position.y=Math.sin(Date.now()*0.01)*.3
 
+crowd.forEach((p,i)=>{
+p.position.y=Math.sin(Date.now()*0.004+i)*0.15
+})
+
 }
 
-/* FIREWORKS */
+fireworks.forEach((p,i)=>{
 
-fireworks.forEach(p=>{
 p.position.x+=p.v.x
 p.position.y+=p.v.y
 p.position.z+=p.v.z
 p.v.y-=.05
+
+if(p.position.y < -5){
+scene.remove(p)
+fireworks.splice(i,1)
+}
+
 })
 
 renderer.render(scene,camera)
