@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 <title>Treble Dusk</title>
 
@@ -9,16 +10,7 @@ body{
 margin:0;
 overflow:hidden;
 background:#0b4da2;
-font-family:Arial;
-}
-
-/* Scene */
-
-#scene{
-width:200vw;
-height:100vh;
-display:flex;
-align-items:center;
+font-family:Arial, sans-serif;
 }
 
 /* Character */
@@ -29,19 +21,19 @@ height:60px;
 background:white;
 border-radius:10px;
 position:absolute;
-bottom:80px;
+bottom:100px;
 left:50px;
 transition:left 5s linear;
 }
 
-/* Auditorium */
+/* Hall */
 
 #auditorium{
 position:absolute;
-right:200px;
-bottom:50px;
-width:200px;
-height:120px;
+right:150px;
+bottom:80px;
+width:220px;
+height:130px;
 background:orange;
 border-radius:10px;
 display:flex;
@@ -49,14 +41,15 @@ align-items:center;
 justify-content:center;
 color:white;
 font-weight:bold;
+font-size:18px;
 }
 
 /* Button */
 
 #forwardBtn{
 position:absolute;
-bottom:20px;
-left:20px;
+bottom:30px;
+left:30px;
 padding:15px 25px;
 background:orange;
 color:white;
@@ -85,30 +78,21 @@ color:orange;
 }
 
 #title h2{
-font-size:35px;
+font-size:32px;
 margin-top:10px;
 }
 
-canvas{
-position:absolute;
-top:0;
-left:0;
-}
-
 </style>
+
 </head>
 
 
 <body>
 
-<div id="scene">
-
 <div id="character"></div>
 
 <div id="auditorium">
 Multipurpose Hall
-</div>
-
 </div>
 
 <button id="forwardBtn">Move Forward →</button>
@@ -117,7 +101,6 @@ Multipurpose Hall
 <div id="title">
 
 <h1>Treble Dusk 7.0</h1>
-
 <h2>Register Now!</h2>
 
 </div>
@@ -126,9 +109,6 @@ Multipurpose Hall
 <audio id="song">
 <source src="song.mp3" type="audio/mpeg">
 </audio>
-
-
-<canvas id="fireworks"></canvas>
 
 
 <script>
@@ -145,82 +125,51 @@ character.style.left = "600px"
 btn.style.display="none"
 
 setTimeout(()=>{
-showCelebration()
+celebrate()
 },5000)
 
 }
 
 
-function showCelebration(){
+function celebrate(){
 
 title.style.display="block"
 
 song.play()
 
-startFireworks()
+startConfetti()
 
 }
 
 
-/* Fireworks */
+/* Simple fireworks effect */
 
-const canvas = document.getElementById("fireworks")
-const ctx = canvas.getContext("2d")
+function startConfetti(){
 
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
+for(let i=0;i<100;i++){
 
-let particles=[]
+let dot=document.createElement("div")
 
-function startFireworks(){
+dot.style.position="absolute"
+dot.style.width="8px"
+dot.style.height="8px"
+dot.style.background="orange"
+dot.style.borderRadius="50%"
 
-setInterval(()=>{
-for(let i=0;i<50;i++){
+dot.style.left=Math.random()*window.innerWidth+"px"
+dot.style.top=Math.random()*window.innerHeight/2+"px"
 
-particles.push({
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height/2,
-dx:(Math.random()-0.5)*4,
-dy:(Math.random()-0.5)*4,
-life:100
-})
+document.body.appendChild(dot)
 
-}
-},500)
+setTimeout(()=>{
+dot.remove()
+},2000)
 
 }
 
-
-function animate(){
-
-ctx.fillStyle="rgba(0,0,0,0.2)"
-ctx.fillRect(0,0,canvas.width,canvas.height)
-
-particles.forEach((p,i)=>{
-
-p.x+=p.dx
-p.y+=p.dy
-p.life--
-
-ctx.fillStyle="orange"
-ctx.beginPath()
-ctx.arc(p.x,p.y,3,0,Math.PI*2)
-ctx.fill()
-
-if(p.life<=0){
-particles.splice(i,1)
 }
-
-})
-
-requestAnimationFrame(animate)
-
-}
-
-animate()
 
 </script>
-
 
 </body>
 </html>
