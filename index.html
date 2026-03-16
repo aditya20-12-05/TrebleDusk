@@ -284,42 +284,86 @@ roughness:0.3
 stage.position.set(0,0.5,-42)
 scene.add(stage)
 
-/* DRUM */
+/* DRUM KIT */
 
-const drum = new THREE.Mesh(
-new THREE.CylinderGeometry(0.8,0.8,0.7,32),
+const drumBase = new THREE.Mesh(
+new THREE.CylinderGeometry(1,1,0.8,32),
 new THREE.MeshStandardMaterial({color:0xffffff})
 )
 
-drum.position.set(0,1,-42)
-scene.add(drum)
+drumBase.position.set(0,1,-43)
+scene.add(drumBase)
 
-/* GUITARS */
-
-function guitar(x){
-
-const body = new THREE.Mesh(
-new THREE.BoxGeometry(0.6,1.4,0.3),
-new THREE.MeshStandardMaterial({color:0xff7a00})
+const drumTop = new THREE.Mesh(
+new THREE.CylinderGeometry(1.2,1.2,0.1,32),
+new THREE.MeshStandardMaterial({color:0xcccccc})
 )
 
-body.position.set(x,1,-41)
-scene.add(body)
+drumTop.position.set(0,1.5,-43)
+scene.add(drumTop)
 
-}
 
-guitar(-4)
-guitar(4)
+/* CYMBALS */
 
-/* MIC */
+function cymbal(x){
 
-const mic = new THREE.Mesh(
-new THREE.CylinderGeometry(0.05,0.05,2.2),
+const stand = new THREE.Mesh(
+new THREE.CylinderGeometry(0.05,0.05,2),
 new THREE.MeshStandardMaterial({color:0xaaaaaa})
 )
 
-mic.position.set(0,1.2,-40)
-scene.add(mic)
+stand.position.set(x,2,-43)
+scene.add(stand)
+
+const plate = new THREE.Mesh(
+new THREE.CylinderGeometry(0.8,0.8,0.05,32),
+new THREE.MeshStandardMaterial({color:0xffd700})
+)
+
+plate.position.set(x,2.8,-43)
+scene.add(plate)
+
+}
+
+cymbal(-1.8)
+cymbal(1.8)
+
+
+/* GUITARISTS */
+
+function guitarPlayer(x){
+
+const guitar = new THREE.Mesh(
+new THREE.BoxGeometry(0.8,1.6,0.3),
+new THREE.MeshStandardMaterial({color:0xff7a00})
+)
+
+guitar.position.set(x,1,-41)
+scene.add(guitar)
+
+}
+
+guitarPlayer(-4)
+guitarPlayer(4)
+
+
+/* MICROPHONE */
+
+const micStand = new THREE.Mesh(
+new THREE.CylinderGeometry(0.05,0.05,2.5),
+new THREE.MeshStandardMaterial({color:0xaaaaaa})
+)
+
+micStand.position.set(0,1.3,-40)
+scene.add(micStand)
+
+const micHead = new THREE.Mesh(
+new THREE.SphereGeometry(0.12),
+new THREE.MeshStandardMaterial({color:0x222222})
+)
+
+micHead.position.set(0,2.6,-40)
+scene.add(micHead)
 
 /* SPEAKERS */
 
@@ -338,47 +382,43 @@ scene.add(s)
 speaker(-10)
 speaker(10)
 
-/* STAGE LIGHTS */
+/* CONCERT LIGHTS */
 
 let stageLights=[]
-let lasers=[]
 
 function createStageLight(x){
 
-const light = new THREE.SpotLight(0xff7a00,8)
+const light = new THREE.SpotLight(0xff7a00,10)
 
-light.position.set(x,10,-40)
-light.angle=Math.PI/5
-light.distance=150
+light.position.set(x,12,-40)
+
+light.angle = Math.PI/7
+light.penumbra = 0.6
+light.decay = 2
+light.distance = 120
 
 scene.add(light)
+
 stageLights.push(light)
-
-/* LASER */
-
-const laser = new THREE.Mesh(
-new THREE.CylinderGeometry(0.25,0.25,30),
-new THREE.MeshBasicMaterial({
-color:0xff7a00,
-transparent:true,
-opacity:0.8
-})
-)
-
-laser.position.set(x,5,-40)
-laser.rotation.x=Math.PI/2
-
-scene.add(laser)
-lasers.push(laser)
 
 }
 
-createStageLight(-6)
-createStageLight(-3)
+createStageLight(-8)
+createStageLight(-4)
 createStageLight(0)
-createStageLight(3)
-createStageLight(6)
+createStageLight(4)
+createStageLight(8)
 
+/* CONCERT LIGHT SWEEP */
+
+stageLights.forEach((light,i)=>{
+
+light.target.position.x =
+Math.sin(Date.now()*0.001 + i)*6
+
+scene.add(light.target)
+
+})
 /* FIREWORKS */
 
 let fireworks=[]
