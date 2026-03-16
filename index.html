@@ -86,6 +86,7 @@ camera.position.set(0,4,12)
 
 const renderer=new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5))
 document.body.appendChild(renderer.domElement)
 
 /* LIGHTING */
@@ -172,7 +173,7 @@ scene.add(bulb)
 
 /* light */
 
-const light=new THREE.PointLight(0xffaa33,2,18)
+const light=new THREE.PointLight(0xffaa33,1.2,10)
 light.position.set(x,3,z)
 
 scene.add(light)
@@ -480,18 +481,20 @@ createLight(0)
 createLight(4)
 createLight(8)
 
-/* FIREWORKS */
+fireworks.forEach((p,i)=>{
 
-let fireworks=[]
+p.position.x+=p.v.x
+p.position.y+=p.v.y
+p.position.z+=p.v.z
+p.v.y-=.05
 
-function createFirework(){
+if(p.position.y < -5){
 
-for(let i=0;i<250;i++){
+scene.remove(p)
+fireworks.splice(i,1)
 
-const p=new THREE.Mesh(
-new THREE.SphereGeometry(.25),
-new THREE.MeshBasicMaterial({
-color:[0xff7a00,0xffffff,0x4488ff][Math.floor(Math.random()*3)]
+}
+
 })
 )
 
