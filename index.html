@@ -165,25 +165,69 @@ createPlanet(6,0xff8844,-120,120,-200)
 createPlanet(4,0x44aaff,150,150,-300)
 createPlanet(5,0xaa66ff,200,80,-250)
 
-/* CHARACTER (stylized humanoid) */
-
-const body = new THREE.Mesh(
-new THREE.CylinderGeometry(0.4,0.5,2),
-new THREE.MeshStandardMaterial({color:0xffffff})
-)
-
-body.position.y=1
-
-const head = new THREE.Mesh(
-new THREE.SphereGeometry(0.45),
-new THREE.MeshStandardMaterial({color:0xffffff})
-)
-
-head.position.y=2.3
+/* CHARACTER */
 
 const character = new THREE.Group()
+
+/* BODY */
+
+const body = new THREE.Mesh(
+new THREE.BoxGeometry(0.8,1.5,0.5),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+body.position.y = 1.2
 character.add(body)
+
+/* HEAD */
+
+const head = new THREE.Mesh(
+new THREE.SphereGeometry(0.4),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+head.position.y = 2.2
 character.add(head)
+
+/* LEFT ARM */
+
+const leftArm = new THREE.Mesh(
+new THREE.BoxGeometry(0.25,1,0.25),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+leftArm.position.set(-0.65,1.2,0)
+character.add(leftArm)
+
+/* RIGHT ARM */
+
+const rightArm = new THREE.Mesh(
+new THREE.BoxGeometry(0.25,1,0.25),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+rightArm.position.set(0.65,1.2,0)
+character.add(rightArm)
+
+/* LEFT LEG */
+
+const leftLeg = new THREE.Mesh(
+new THREE.BoxGeometry(0.3,1,0.3),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+leftLeg.position.set(-0.25,0.4,0)
+character.add(leftLeg)
+
+/* RIGHT LEG */
+
+const rightLeg = new THREE.Mesh(
+new THREE.BoxGeometry(0.3,1,0.3),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+rightLeg.position.set(0.25,0.4,0)
+character.add(rightLeg)
 
 scene.add(character)
 
@@ -326,7 +370,13 @@ if(moving){
 character.position.z -=0.09
 camera.position.z -=0.09
 
-character.position.y = 0 + Math.sin(Date.now()*0.01)*0.1
+const walk=Math.sin(Date.now()*0.01)
+
+leftLeg.rotation.x = walk
+rightLeg.rotation.x = -walk
+
+leftArm.rotation.x = -walk
+rightArm.rotation.x = walk
 
 }
 
