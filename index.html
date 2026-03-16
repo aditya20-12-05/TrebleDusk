@@ -13,8 +13,6 @@ background:black;
 font-family:Arial;
 }
 
-/* BUTTON */
-
 #moveBtn{
 position:absolute;
 bottom:30px;
@@ -28,8 +26,6 @@ border-radius:8px;
 cursor:pointer;
 z-index:10;
 }
-
-/* TITLE */
 
 #title{
 position:absolute;
@@ -93,14 +89,14 @@ const renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-/* LIGHTING */
+/* LIGHT */
 
 const ambient = new THREE.AmbientLight(0xffffff,0.3)
 scene.add(ambient)
 
-const moonLight = new THREE.DirectionalLight(0x99aaff,0.8)
-moonLight.position.set(20,40,10)
-scene.add(moonLight)
+const moon = new THREE.DirectionalLight(0x99aaff,0.8)
+moon.position.set(20,40,10)
+scene.add(moon)
 
 /* GROUND */
 
@@ -126,10 +122,9 @@ scene.add(path)
 /* STARS */
 
 const starGeo = new THREE.BufferGeometry()
-const starCount = 4000
 let starVerts=[]
 
-for(let i=0;i<starCount;i++){
+for(let i=0;i<4000;i++){
 
 starVerts.push(
 (Math.random()-0.5)*1200,
@@ -153,31 +148,13 @@ scene.add(stars)
 
 /* MOON */
 
-const moon = new THREE.Mesh(
+const moonSphere = new THREE.Mesh(
 new THREE.SphereGeometry(20,32,32),
 new THREE.MeshStandardMaterial({color:0xffffcc})
 )
 
-moon.position.set(-200,250,-400)
-scene.add(moon)
-
-/* PLANETS */
-
-function createPlanet(size,color,x,y,z){
-
-const planet = new THREE.Mesh(
-new THREE.SphereGeometry(size,32,32),
-new THREE.MeshStandardMaterial({color:color})
-)
-
-planet.position.set(x,y,z)
-scene.add(planet)
-
-}
-
-createPlanet(8,0xff8844,-150,150,-300)
-createPlanet(6,0x44aaff,200,200,-400)
-createPlanet(7,0xaa66ff,250,120,-350)
+moonSphere.position.set(-200,250,-400)
+scene.add(moonSphere)
 
 /* CHARACTER */
 
@@ -233,7 +210,7 @@ character.add(rightLeg)
 
 scene.add(character)
 
-/* MULTIPURPOSE HALL */
+/* HALL */
 
 const hall = new THREE.Mesh(
 new THREE.BoxGeometry(16,10,16),
@@ -247,17 +224,58 @@ emissiveIntensity:1
 hall.position.set(0,5,-50)
 scene.add(hall)
 
-/* STAGE */
+/* STAGE FLOOR */
 
 const stage = new THREE.Mesh(
-new THREE.BoxGeometry(12,1,6),
-new THREE.MeshStandardMaterial({color:0x222222})
+new THREE.BoxGeometry(14,1,8),
+new THREE.MeshStandardMaterial({
+color:0xd4af37,
+metalness:0.8,
+roughness:0.3
+})
 )
 
 stage.position.set(0,0.5,-42)
 scene.add(stage)
 
-/* SPEAKER TOWERS */
+/* DRUM KIT */
+
+const drum = new THREE.Mesh(
+new THREE.CylinderGeometry(0.8,0.8,0.7,32),
+new THREE.MeshStandardMaterial({color:0xffffff})
+)
+
+drum.position.set(0,1,-42)
+scene.add(drum)
+
+/* GUITARS */
+
+function guitar(x){
+
+const body = new THREE.Mesh(
+new THREE.BoxGeometry(0.6,1.4,0.3),
+new THREE.MeshStandardMaterial({color:0xff7a00})
+)
+
+body.position.set(x,1,-41)
+scene.add(body)
+
+}
+
+guitar(-4)
+guitar(4)
+
+/* MICROPHONE */
+
+const mic = new THREE.Mesh(
+new THREE.CylinderGeometry(0.05,0.05,2.2),
+new THREE.MeshStandardMaterial({color:0xaaaaaa})
+)
+
+mic.position.set(0,1.2,-40)
+scene.add(mic)
+
+/* SPEAKERS */
 
 function speaker(x){
 
@@ -274,24 +292,46 @@ scene.add(s)
 speaker(-10)
 speaker(10)
 
-/* STAGE LIGHTS */
+/* STAGE LIGHTS + LASERS */
 
 let stageLights=[]
+let lasers=[]
 
-for(let i=0;i<6;i++){
+function createStageLight(x){
 
-const light = new THREE.PointLight(0xff7a00,3,80)
+const light = new THREE.SpotLight(0xff7a00,5)
+light.position.set(x,10,-40)
 
-light.position.set(
-(i-3)*3,
-8,
--40
-)
+light.angle = Math.PI/6
+light.distance = 100
 
 scene.add(light)
 stageLights.push(light)
 
+/* LASER */
+
+const laser = new THREE.Mesh(
+new THREE.CylinderGeometry(0.1,0.1,20),
+new THREE.MeshBasicMaterial({
+color:0xff7a00,
+transparent:true,
+opacity:0.6
+})
+)
+
+laser.position.set(x,5,-40)
+laser.rotation.x=Math.PI/2
+
+scene.add(laser)
+lasers.push(laser)
+
 }
+
+createStageLight(-6)
+createStageLight(-3)
+createStageLight(0)
+createStageLight(3)
+createStageLight(6)
 
 /* FIREWORKS */
 
@@ -301,7 +341,7 @@ function createFirework(){
 
 const colors=[0xff7a00,0xffffff,0x4488ff]
 
-for(let i=0;i<200;i++){
+for(let i=0;i<250;i++){
 
 const p = new THREE.Mesh(
 new THREE.SphereGeometry(0.15),
@@ -310,12 +350,12 @@ color:colors[Math.floor(Math.random()*colors.length)]
 })
 )
 
-p.position.set(Math.random()*30-15,15,-50)
+p.position.set(Math.random()*40-20,20,-60)
 
 p.v={
-x:(Math.random()-0.5)*0.8,
-y:Math.random()*1.5,
-z:(Math.random()-0.5)*0.8
+x:(Math.random()-0.5)*1,
+y:Math.random()*2,
+z:(Math.random()-0.5)*1
 }
 
 scene.add(p)
@@ -324,32 +364,6 @@ fireworks.push(p)
 }
 
 }
-
-/* SHOOTING STARS */
-
-let shooting=[]
-
-function createShootingStar(){
-
-const star = new THREE.Mesh(
-new THREE.SphereGeometry(0.2),
-new THREE.MeshBasicMaterial({color:0xffffff})
-)
-
-star.position.set(
-(Math.random()-0.5)*300,
-200,
--200
-)
-
-star.v={x:-3,y:-1.5,z:0}
-
-scene.add(star)
-shooting.push(star)
-
-}
-
-setInterval(createShootingStar,5000)
 
 /* MOVEMENT */
 
@@ -366,12 +380,9 @@ celebrate()
 
 }
 
-/* CELEBRATION */
-
 function celebrate(){
 
 document.getElementById("title").style.display="block"
-
 document.getElementById("song").play()
 
 setInterval(createFirework,700)
@@ -384,8 +395,6 @@ function animate(){
 
 requestAnimationFrame(animate)
 
-/* WALKING */
-
 if(moving){
 
 character.position.z -=0.09
@@ -395,7 +404,6 @@ const walk=Math.sin(Date.now()*0.01)
 
 leftLeg.rotation.x = walk
 rightLeg.rotation.x = -walk
-
 leftArm.rotation.x = -walk
 rightArm.rotation.x = walk
 
@@ -405,28 +413,18 @@ rightArm.rotation.x = walk
 
 fireworks.forEach(p=>{
 
-p.position.x += p.v.x
-p.position.y += p.v.y
-p.position.z += p.v.z
-
-p.v.y -=0.04
-
-})
-
-/* SHOOTING STARS */
-
-shooting.forEach(s=>{
-
-s.position.x+=s.v.x
-s.position.y+=s.v.y
+p.position.x+=p.v.x
+p.position.y+=p.v.y
+p.position.z+=p.v.z
+p.v.y-=0.05
 
 })
 
-/* STAGE LIGHT ANIMATION */
+/* LASER MOVEMENT */
 
-stageLights.forEach((l,i)=>{
+lasers.forEach((laser,i)=>{
 
-l.intensity = 2 + Math.sin(Date.now()*0.002 + i)*2
+laser.rotation.z=Math.sin(Date.now()*0.001+i)*0.6
 
 })
 
