@@ -11,19 +11,43 @@ background:black;
 font-family:Arial;
 }
 
-#moveBtn{
+#controls-hud{
 position:absolute;
-bottom:30px;
-left:30px;
-padding:15px 30px;
-font-size:18px;
-background:#ff7a00;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
+bottom:24px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:6px;
 z-index:10;
-display:none;
+user-select:none;
+}
+
+.key-row{
+display:flex;
+gap:6px;
+}
+
+.key{
+width:42px;
+height:42px;
+background:rgba(255,255,255,0.12);
+border:2px solid rgba(255,255,255,0.3);
+border-radius:8px;
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+font-size:18px;
+font-weight:bold;
+transition:background 0.1s, border-color 0.1s;
+backdrop-filter:blur(6px);
+}
+
+.key.active{
+background:rgba(255,122,0,0.5);
+border-color:#ff7a00;
 }
 
 #title{
@@ -45,12 +69,43 @@ text-shadow:0 0 50px orange;
 #title h2{
 font-size:36px;
 }
+
+#hint{
+position:absolute;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+color:rgba(255,255,255,0.6);
+font-size:14px;
+letter-spacing:1px;
+z-index:10;
+}
 </style>
 </head>
 
 <body>
 
-<button id="moveBtn">Move Forward →</button>
+<!-- Controls HUD -->
+<div id="controls-hud">
+  <div class="key-row">
+    <div class="key" id="key-w">W</div>
+  </div>
+  <div class="key-row">
+    <div class="key" id="key-a">A</div>
+    <div class="key" id="key-s">S</div>
+    <div class="key" id="key-d">D</div>
+  </div>
+  <div class="key-row" style="margin-top:4px;">
+    <div class="key" id="key-up">↑</div>
+  </div>
+  <div class="key-row">
+    <div class="key" id="key-left">←</div>
+    <div class="key" id="key-down">↓</div>
+    <div class="key" id="key-right">→</div>
+  </div>
+</div>
+
+<div id="hint">WASD or Arrow Keys to move</div>
 
 <div id="title">
 <h1>Treble Dusk 7.0</h1>
@@ -400,16 +455,12 @@ function createPerson(x,z){
 
 const person=new THREE.Group()
 
-/* body */
-
 const body=new THREE.Mesh(
 new THREE.CylinderGeometry(0.3,0.4,1.2,8),
 new THREE.MeshStandardMaterial({color:0x111111})
 )
 
 body.position.y=0.6
-
-/* head */
 
 const head=new THREE.Mesh(
 new THREE.SphereGeometry(0.25,8,8),
@@ -428,8 +479,6 @@ scene.add(person)
 crowd.push(person)
 
 }
-
-/* generate crowd */
 
 for(let i=0;i<250;i++){
 
@@ -496,18 +545,56 @@ fireworks.push(p)
 
 }
 
-/* MOVEMENT */
+/* ============================
+   KEYBOARD MOVEMENT CONTROLS
+   ============================ */
 
-let intro=true
-let moving=false
-let dancing=false
-let introTime=0
-const stopZ=-32
-
-document.getElementById("moveBtn").onclick=function(){
-moving=true
-this.style.display="none"
+const keys={
+  w:false, a:false, s:false, d:false,
+  ArrowUp:false, ArrowLeft:false, ArrowDown:false, ArrowRight:false
 }
+
+const keyEls={
+  w: document.getElementById('key-w'),
+  a: document.getElementById('key-a'),
+  s: document.getElementById('key-s'),
+  d: document.getElementById('key-d'),
+  ArrowUp: document.getElementById('key-up'),
+  ArrowLeft: document.getElementById('key-left'),
+  ArrowDown: document.getElementById('key-down'),
+  ArrowRight: document.getElementById('key-right')
+}
+
+document.addEventListener('keydown', e=>{
+  const k = e.key
+  if(k in keys){
+    e.preventDefault()
+    keys[k]=true
+    if(keyEls[k]) keyEls[k].classList.add('active')
+    // hide hint on first keypress
+    document.getElementById('hint').style.opacity='0'
+  }
+})
+
+document.addEventListener('keyup', e=>{
+  const k = e.key
+  if(k in keys){
+    keys[k]=false
+    if(keyEls[k]) keyEls[k].classList.remove('active')
+  }
+})
+
+/* Movement state */
+const MOVE_SPEED = 0.12
+const CAM_OFFSET = new THREE.Vector3(0, 4, 8) // camera behind & above character
+let dancing = false
+let dancingTriggered = false
+let characterFacing = 0 // radians, character's Y rotation
+
+/* BOUNDS - keep character on the map */
+const BOUNDS = { minX:-40, maxX:40, minZ:-53, maxZ:14 }
+
+function clamp(val, min, max){ return Math.max(min, Math.min(max, val)) }
 
 /* ANIMATION */
 
@@ -517,54 +604,90 @@ requestAnimationFrame(animate)
 
 stars.rotation.y+=0.0002
 
-if(intro){
-camera.position.z -= 0.02
-introTime++
+/* --- KEYBOARD MOVEMENT --- */
+let moving = false
+let dx = 0, dz = 0
 
-if(introTime > 300){
-intro=false
-document.getElementById("moveBtn").style.display="block"
+if(keys.w || keys.ArrowUp)    { dz = -1; moving = true }
+if(keys.s || keys.ArrowDown)  { dz =  1; moving = true }
+if(keys.a || keys.ArrowLeft)  { dx = -1; moving = true }
+if(keys.d || keys.ArrowRight) { dx =  1; moving = true }
+
+if(moving && !dancing){
+
+  // Normalize diagonal
+  if(dx!==0 && dz!==0){ dx*=0.707; dz*=0.707 }
+
+  const newX = clamp(character.position.x + dx * MOVE_SPEED, BOUNDS.minX, BOUNDS.maxX)
+  const newZ = clamp(character.position.z + dz * MOVE_SPEED, BOUNDS.minZ, BOUNDS.maxZ)
+
+  character.position.x = newX
+  character.position.z = newZ
+
+  // Face movement direction
+  if(dx!==0 || dz!==0){
+    characterFacing = Math.atan2(dx, dz) + Math.PI
+    character.rotation.y = characterFacing
+  }
+
+  // Walk animation
+  const walk = Math.sin(Date.now()*0.012)
+  leftLeg.rotation.x  =  walk
+  rightLeg.rotation.x = -walk
+  leftArm.rotation.x  = -walk
+  rightArm.rotation.x =  walk
+
+  // Camera follows character smoothly
+  const targetCamX = character.position.x
+  const targetCamZ = character.position.z + 8
+  camera.position.x += (targetCamX - camera.position.x) * 0.08
+  camera.position.z += (targetCamZ - camera.position.z) * 0.08
+  camera.position.y = 4
+  camera.lookAt(character.position.x, 2, character.position.z)
+
+  // Trigger concert when close enough to stage
+  if(character.position.z < -30 && !dancingTriggered){
+    dancingTriggered = true
+    dancing = true
+    document.getElementById('title').style.display = 'block'
+    document.getElementById('song').play().catch(()=>{})
+    setInterval(createFirework, 700)
+  }
+
+} else if(!dancing){
+
+  // Idle - reset limb rotations
+  leftLeg.rotation.x  *= 0.85
+  rightLeg.rotation.x *= 0.85
+  leftArm.rotation.x  *= 0.85
+  rightArm.rotation.x *= 0.85
+
+  // Camera still follows when idle
+  const targetCamX = character.position.x
+  const targetCamZ = character.position.z + 8
+  camera.position.x += (targetCamX - camera.position.x) * 0.05
+  camera.position.z += (targetCamZ - camera.position.z) * 0.05
+  camera.lookAt(character.position.x, 2, character.position.z)
 }
-}
 
-if(moving){
-
-if(character.position.z>stopZ){
-
-character.position.z-=.09
-camera.position.z-=.09
-
-const walk=Math.sin(Date.now()*0.01)
-
-leftLeg.rotation.x=walk
-rightLeg.rotation.x=-walk
-leftArm.rotation.x=-walk
-rightArm.rotation.x=walk
-
-}else{
-
-moving=false
-dancing=true
-
-document.getElementById("title").style.display="block"
-document.getElementById("song").play()
-
-setInterval(createFirework,700)
-
-}
-
-}
+/* DANCING MODE */
 
 if(dancing){
 
-character.rotation.y+=0.05
-character.position.y=Math.sin(Date.now()*0.01)*.3
+  character.rotation.y += 0.05
+  character.position.y = Math.sin(Date.now()*0.01) * 0.3
 
-crowd.forEach((p,i)=>{
-p.position.y=Math.sin(Date.now()*0.004+i)*0.15
-})
+  crowd.forEach((p,i)=>{
+    p.position.y = Math.sin(Date.now()*0.004+i) * 0.15
+  })
 
+  // Camera orbits slightly during concert
+  const t = Date.now() * 0.0003
+  camera.position.x += (Math.sin(t)*2 - camera.position.x) * 0.01
+  camera.lookAt(character.position.x, 2, character.position.z)
 }
+
+/* FIREWORKS */
 
 fireworks.forEach((p,i)=>{
 
@@ -585,6 +708,12 @@ renderer.render(scene,camera)
 }
 
 animate()
+
+window.addEventListener('resize',()=>{
+camera.aspect=window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth,window.innerHeight)
+})
 
 </script>
 
