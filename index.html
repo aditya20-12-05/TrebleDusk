@@ -2,129 +2,406 @@
 <html>
 <head>
 <title>Treble Dusk 7.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+:root{
+  --orange: #ff7a00;
+  --orange-glow: rgba(255,122,0,0.35);
+  --orange-dim: rgba(255,122,0,0.15);
+  --glass: rgba(8,6,24,0.55);
+  --glass-border: rgba(255,122,0,0.22);
+  --white-dim: rgba(255,255,255,0.55);
+}
+
+*{ box-sizing:border-box; }
+
 body{
-margin:0;
-overflow:hidden;
-background:black;
-font-family:Arial;
+  margin:0;
+  overflow:hidden;
+  background:#020312;
+  font-family:'Outfit', sans-serif;
 }
 
+/* ── LOADING SCREEN ── */
+#loader{
+  position:fixed;
+  inset:0;
+  background:#020312;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  transition:opacity 0.6s ease;
+}
+#loader h1{
+  font-family:'Bebas Neue', sans-serif;
+  font-size:clamp(52px,12vw,96px);
+  color:var(--orange);
+  letter-spacing:0.08em;
+  margin:0 0 6px;
+  text-shadow:0 0 60px var(--orange-glow), 0 0 120px rgba(255,100,0,0.2);
+}
+#loader p{
+  font-family:'Outfit', sans-serif;
+  font-size:13px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color:var(--white-dim);
+  margin:0 0 36px;
+}
+.loader-bar{
+  width:180px;
+  height:2px;
+  background:rgba(255,255,255,0.1);
+  border-radius:2px;
+  overflow:hidden;
+}
+.loader-fill{
+  height:100%;
+  background:linear-gradient(90deg, var(--orange), #ffcc00);
+  width:0%;
+  transition:width 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── VIGNETTE + FILM GRAIN OVERLAY ── */
+#overlay{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:5;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(2,3,18,0.7) 100%);
+}
+
+/* ── HINT BAR ── */
+#hint{
+  position:absolute;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  color:var(--white-dim);
+  font-size:11px;
+  font-family:'Outfit', sans-serif;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  z-index:10;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  padding:7px 18px;
+  border-radius:40px;
+  backdrop-filter:blur(12px);
+  transition:opacity 0.5s ease;
+  white-space:nowrap;
+}
+
+/* ── D-PAD ── */
 #controls-hud{
-position:absolute;
-bottom:24px;
-left:50%;
-transform:translateX(-50%);
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:6px;
-z-index:10;
-user-select:none;
-}
-
-.key-row{
-display:flex;
-gap:6px;
+  position:absolute;
+  bottom:28px;
+  left:50%;
+  transform:translateX(-50%);
+  display:grid;
+  grid-template-columns:repeat(3,60px);
+  grid-template-rows:repeat(3,60px);
+  gap:5px;
+  z-index:10;
+  user-select:none;
+  touch-action:none;
 }
 
 .key{
-width:42px;
-height:42px;
-background:rgba(255,255,255,0.12);
-border:2px solid rgba(255,255,255,0.3);
-border-radius:8px;
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-size:18px;
-font-weight:bold;
-transition:background 0.1s, border-color 0.1s;
-backdrop-filter:blur(6px);
+  width:60px;
+  height:60px;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:rgba(255,255,255,0.7);
+  font-size:20px;
+  font-weight:400;
+  transition:background 0.08s, border-color 0.08s, transform 0.08s, box-shadow 0.08s;
+  backdrop-filter:blur(14px);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 2px 12px rgba(0,0,0,0.4);
 }
 
 .key.active{
-background:rgba(255,122,0,0.5);
-border-color:#ff7a00;
+  background:rgba(255,122,0,0.28);
+  border-color:var(--orange);
+  color:#fff;
+  transform:scale(0.9);
+  box-shadow:0 0 18px var(--orange-glow), inset 0 0 8px rgba(255,122,0,0.15);
 }
 
+/* grid placement */
+#key-up    { grid-column:2; grid-row:1; }
+#key-left  { grid-column:1; grid-row:2; }
+#key-mid   { grid-column:2; grid-row:2; background:rgba(255,122,0,0.06); border-color:rgba(255,122,0,0.1); pointer-events:none; border-radius:50%; }
+#key-right { grid-column:3; grid-row:2; }
+#key-down  { grid-column:2; grid-row:3; }
+
+/* ── STATION POPUP ── */
+#station-popup{
+  position:absolute;
+  bottom:220px;
+  left:50%;
+  transform:translateX(-50%) translateY(12px);
+  z-index:20;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.3s ease, transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  min-width:260px;
+  max-width:88vw;
+  text-align:center;
+}
+#station-popup.visible{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+  pointer-events:auto;
+}
+#station-popup-inner{
+  padding:22px 32px 20px;
+  background:rgba(4,2,20,0.72);
+  border:1px solid rgba(255,122,0,0.3);
+  border-radius:6px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 60px rgba(255,100,0,0.1);
+}
+#popup-tag{
+  font-family:'Outfit', sans-serif;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  color:var(--orange);
+  margin-bottom:6px;
+}
+#popup-name{
+  font-family:'Bebas Neue', sans-serif;
+  font-size:clamp(28px,7vw,44px);
+  color:#fff;
+  letter-spacing:0.06em;
+  line-height:1;
+  margin-bottom:4px;
+  text-shadow:0 0 30px rgba(255,122,0,0.4);
+}
+#popup-desc{
+  font-family:'Outfit', sans-serif;
+  font-size:12px;
+  font-weight:300;
+  color:var(--white-dim);
+  margin-bottom:16px;
+  letter-spacing:0.05em;
+}
+#popup-cta{
+  display:inline-block;
+  font-family:'Outfit', sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.28em;
+  text-transform:uppercase;
+  color:#fff;
+  background:var(--orange);
+  padding:11px 28px;
+  border-radius:3px;
+  cursor:pointer;
+  text-decoration:none;
+  box-shadow:0 0 24px var(--orange-glow);
+  transition:background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+#popup-cta:hover{
+  background:#ff9533;
+  transform:translateY(-2px);
+  box-shadow:0 0 40px rgba(255,122,0,0.55);
+}
+
+/* ── CONCERT TITLE OVERLAY ── */
 #title{
-position:absolute;
-top:40%;
-width:100%;
-text-align:center;
-color:white;
-display:none;
-z-index:10;
+  position:absolute;
+  inset:0;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+  pointer-events:none;
+  text-align:center;
+}
+#title.show{ display:flex; pointer-events:auto; }
+
+#title-inner{
+  padding:40px 56px 36px;
+  background:rgba(4,2,20,0.5);
+  border:1px solid rgba(255,122,0,0.25);
+  border-radius:4px;
+  backdrop-filter:blur(18px);
+  box-shadow:0 0 80px rgba(255,100,0,0.12), 0 0 200px rgba(255,60,0,0.06);
+  animation:fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes fadeUp{
+  from{ opacity:0; transform:translateY(28px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+
+#title-eyebrow{
+  font-family:'Outfit', sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.4em;
+  text-transform:uppercase;
+  color:var(--orange);
+  margin-bottom:10px;
+  opacity:0;
+  animation:fadeUp 0.5s 0.2s cubic-bezier(0.16,1,0.3,1) forwards;
 }
 
 #title h1{
-font-size:90px;
-color:#ff7a00;
-text-shadow:0 0 50px orange;
+  font-family:'Bebas Neue', sans-serif;
+  font-size:clamp(56px,14vw,120px);
+  color:#fff;
+  margin:0 0 4px;
+  letter-spacing:0.05em;
+  line-height:0.95;
+  text-shadow:0 0 40px rgba(255,122,0,0.5), 0 0 100px rgba(255,60,0,0.2);
+  opacity:0;
+  animation:fadeUp 0.6s 0.35s cubic-bezier(0.16,1,0.3,1) forwards;
 }
 
-#title h2{
-font-size:36px;
+#title-version{
+  font-family:'Bebas Neue', sans-serif;
+  font-size:clamp(28px,6vw,52px);
+  color:var(--orange);
+  letter-spacing:0.15em;
+  margin-bottom:24px;
+  opacity:0;
+  animation:fadeUp 0.6s 0.45s cubic-bezier(0.16,1,0.3,1) forwards;
 }
 
-#hint{
-position:absolute;
-top:20px;
-left:50%;
-transform:translateX(-50%);
-color:rgba(255,255,255,0.6);
-font-size:14px;
-letter-spacing:1px;
-z-index:10;
+#title-cta{
+  display:inline-block;
+  font-family:'Outfit', sans-serif;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color:#fff;
+  background:var(--orange);
+  padding:14px 36px;
+  border-radius:3px;
+  text-decoration:none;
+  box-shadow:0 0 30px var(--orange-glow), 0 4px 20px rgba(0,0,0,0.4);
+  opacity:0;
+  animation:fadeUp 0.5s 0.65s cubic-bezier(0.16,1,0.3,1) forwards;
+  cursor:pointer;
+  transition:background 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+#title-cta:hover{
+  background:#ff9533;
+  box-shadow:0 0 50px rgba(255,122,0,0.6);
+  transform:translateY(-2px);
+}
+
+/* ── BADGE (top-left) ── */
+#badge{
+  position:absolute;
+  top:18px;
+  left:20px;
+  z-index:10;
+  display:flex;
+  flex-direction:column;
+  line-height:1;
+}
+#badge-name{
+  font-family:'Bebas Neue', sans-serif;
+  font-size:22px;
+  color:#fff;
+  letter-spacing:0.05em;
+}
+#badge-sub{
+  font-family:'Outfit', sans-serif;
+  font-size:10px;
+  font-weight:300;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--orange);
 }
 </style>
 </head>
 
 <body>
 
-<!-- Controls HUD -->
-<div id="controls-hud">
-  <div class="key-row">
-    <div class="key" id="key-w">W</div>
-  </div>
-  <div class="key-row">
-    <div class="key" id="key-a">A</div>
-    <div class="key" id="key-s">S</div>
-    <div class="key" id="key-d">D</div>
-  </div>
-  <div class="key-row" style="margin-top:4px;">
-    <div class="key" id="key-up">↑</div>
-  </div>
-  <div class="key-row">
-    <div class="key" id="key-left">←</div>
-    <div class="key" id="key-down">↓</div>
-    <div class="key" id="key-right">→</div>
+<!-- Loading screen -->
+<div id="loader">
+  <h1>TREBLE DUSK</h1>
+  <p>7.0 · Annual Music Festival</p>
+  <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
+</div>
+
+<!-- Vignette overlay -->
+<div id="overlay"></div>
+
+<!-- Top-left badge -->
+<div id="badge">
+  <span id="badge-name">TREBLE DUSK</span>
+  <span id="badge-sub">7.0 · Festival</span>
+</div>
+
+<!-- Hint pill -->
+<div id="hint">Move with WASD or tap the d-pad</div>
+
+<!-- Station proximity popup -->
+<div id="station-popup">
+  <div id="station-popup-inner">
+    <div id="popup-tag">Now Entering</div>
+    <div id="popup-name">Main Stage</div>
+    <div id="popup-desc">Doors open 8PM · General Admission</div>
+    <a id="popup-cta" href="#">Register Now →</a>
   </div>
 </div>
 
-<div id="hint">WASD or Arrow Keys to move</div>
+<!-- Concert fireworks title (kept for main stage only, auto-shown by JS) -->
+<div id="title" style="display:none">
+  <div id="title-inner">
+    <div id="title-eyebrow">You've arrived</div>
+    <h1>TREBLE<br>DUSK</h1>
+    <div id="title-version">7.0</div>
+    <a id="title-cta" href="#">Register Now →</a>
+  </div>
+</div>
 
-<div id="title">
-<h1>Treble Dusk 7.0</h1>
-<h2>Register Now!</h2>
+<!-- Controls D-Pad -->
+<div id="controls-hud">
+  <div class="key" id="key-up">↑</div>
+  <div class="key" id="key-left">←</div>
+  <div class="key" id="key-mid"></div>
+  <div class="key" id="key-right">→</div>
+  <div class="key" id="key-down">↓</div>
 </div>
 
 <audio id="song">
-<source src="song.mp3" type="audio/mpeg">
+  <source src="song.mp3" type="audio/mpeg">
 </audio>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 
 <script>
 
+/* MOBILE DETECTION */
+const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768
+
 /* SCENE */
 
 const scene=new THREE.Scene()
-scene.background=new THREE.Color(0x020312)
-scene.fog=new THREE.Fog(0x020312,40,200)
+scene.background=new THREE.Color(0x030414)
+scene.fog=new THREE.Fog(0x030414, isMobile?20:40, isMobile?80:200)
 
 /* CAMERA */
 
@@ -139,30 +416,32 @@ camera.position.set(0,4,12)
 
 /* RENDERER */
 
-const renderer=new THREE.WebGLRenderer({antialias:true})
+const renderer=new THREE.WebGLRenderer({antialias: !isMobile})
 renderer.setSize(window.innerWidth,window.innerHeight)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5))
+// Cap at 1x on mobile — this alone can double framerate on high-DPI phones
+renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio,1.5))
 document.body.appendChild(renderer.domElement)
 
 /* LIGHTING */
 
-scene.add(new THREE.AmbientLight(0xffffff,0.35))
+scene.add(new THREE.AmbientLight(0x1a1a3a, 1.2))
 
-const moonLight=new THREE.DirectionalLight(0x99aaff,0.9)
+const moonLight=new THREE.DirectionalLight(0xb0c4ff, 1.1)
 moonLight.position.set(20,40,10)
 scene.add(moonLight)
+
+// Warm ground bounce light
+const groundBounce = new THREE.DirectionalLight(0xff6600, 0.15)
+groundBounce.position.set(0,-10,0)
+scene.add(groundBounce)
 
 /* PLANETS */
 
 function createPlanet(size,color,x,y,z){
-
+const seg = isMobile ? 10 : 32
 const planet=new THREE.Mesh(
-new THREE.SphereGeometry(size,32,32),
-new THREE.MeshStandardMaterial({
-color:color,
-emissive:color,
-emissiveIntensity:0.2
-})
+new THREE.SphereGeometry(size,seg,seg),
+new THREE.MeshBasicMaterial({color:color})
 )
 
 planet.position.set(x,y,z)
@@ -170,59 +449,66 @@ scene.add(planet)
 
 }
 
-createPlanet(40,0xff8844,-600,200,-900)
-createPlanet(30,0x44aaff,700,300,-1000)
-createPlanet(35,0xaa66ff,500,120,-800)
+createPlanet(40,0xff6622,-600,200,-900)
+createPlanet(30,0x2266cc,700,300,-1000)
+createPlanet(35,0x8844dd,500,120,-800)
 
 /* GROUND */
 
 const ground=new THREE.Mesh(
 new THREE.PlaneGeometry(600,600),
-new THREE.MeshStandardMaterial({color:0x12122a})
+isMobile
+  ? new THREE.MeshBasicMaterial({color:0x0a0a1e})
+  : new THREE.MeshStandardMaterial({color:0x0a0a1e})
 )
 
 ground.rotation.x=-Math.PI/2
 scene.add(ground)
 
-/* PATH */
+/* PATH — centre + two branches */
 
-const path=new THREE.Mesh(
-new THREE.PlaneGeometry(6,200),
-new THREE.MeshStandardMaterial({color:0x2c2c40})
-)
+// Centre main path
+const pathMat = isMobile
+  ? new THREE.MeshBasicMaterial({color:0x18182e})
+  : new THREE.MeshStandardMaterial({color:0x18182e, roughness:1})
 
-path.rotation.x=-Math.PI/2
-path.position.y=0.01
-scene.add(path)
+const pathMain=new THREE.Mesh(new THREE.PlaneGeometry(7,60), pathMat)
+pathMain.rotation.x=-Math.PI/2; pathMain.position.set(0,0.01,-22); scene.add(pathMain)
+
+// Left branch to Blue Tent
+const pathLeft=new THREE.Mesh(new THREE.PlaneGeometry(5,30), pathMat)
+pathLeft.rotation.x=-Math.PI/2; pathLeft.rotation.z=0.55
+pathLeft.position.set(-11,0.01,-30); scene.add(pathLeft)
+
+// Right branch to Neon Lounge
+const pathRight=new THREE.Mesh(new THREE.PlaneGeometry(5,30), pathMat)
+pathRight.rotation.x=-Math.PI/2; pathRight.rotation.z=-0.55
+pathRight.position.set(11,0.01,-30); scene.add(pathRight)
 
 /* WALKWAY LAMPS */
 
 function createLamp(x,z){
 
 const pole=new THREE.Mesh(
-new THREE.CylinderGeometry(0.08,0.08,3,16),
-new THREE.MeshStandardMaterial({color:0x555555})
+new THREE.CylinderGeometry(0.08,0.08,3,6),
+new THREE.MeshBasicMaterial({color:0x555555})
 )
-
 pole.position.set(x,1.5,z)
 scene.add(pole)
 
 const bulb=new THREE.Mesh(
-new THREE.SphereGeometry(0.2),
-new THREE.MeshStandardMaterial({
-color:0xffcc66,
-emissive:0xffaa33,
-emissiveIntensity:2
-})
+new THREE.SphereGeometry(0.2,6,6),
+new THREE.MeshBasicMaterial({color:0xffcc66})
 )
-
 bulb.position.set(x,3,z)
 scene.add(bulb)
 
-const light=new THREE.PointLight(0xffaa33,1.2,10)
-light.position.set(x,3,z)
-
-scene.add(light)
+// Skip per-lamp PointLights on mobile — they're very expensive
+if(!isMobile){
+  const light=new THREE.PointLight(0xffaa33,1.2,10)
+  light.position.set(x,3,z)
+  scene.add(light)
+}
 
 }
 
@@ -238,7 +524,8 @@ createLamp(2.5,-20-i*8)
 const starGeo=new THREE.BufferGeometry()
 let starVerts=[]
 
-for(let i=0;i<5000;i++){
+const starCount = isMobile ? 1500 : 5000
+for(let i=0;i<starCount;i++){
 
 starVerts.push(
 (Math.random()-0.5)*1500,
@@ -263,18 +550,27 @@ scene.add(stars)
 /* MOON */
 
 const moon=new THREE.Mesh(
-new THREE.SphereGeometry(30,32,32),
-new THREE.MeshStandardMaterial({color:0xffffdd})
+new THREE.SphereGeometry(30, isMobile?8:32, isMobile?8:32),
+new THREE.MeshBasicMaterial({color:0xdde8ff})
 )
 
 moon.position.set(-250,300,-500)
 scene.add(moon)
 
+// Moon glow halo (desktop)
+if(!isMobile){
+  const moonGlow = new THREE.PointLight(0x8899ff, 0.6, 800)
+  moonGlow.position.set(-250,300,-500)
+  scene.add(moonGlow)
+}
+
 /* CHARACTER */
 
 const character=new THREE.Group()
 
-const charMat=new THREE.MeshStandardMaterial({color:0xffff00})
+const charMat = isMobile
+  ? new THREE.MeshBasicMaterial({color:0x00eeff})
+  : new THREE.MeshStandardMaterial({color:0x00eeff, emissive:0x004455, emissiveIntensity:0.4})
 
 function limb(w,h,x,y){
 const m=new THREE.Mesh(
@@ -297,347 +593,450 @@ const rightLeg=limb(.3,1,.25,.4)
 character.add(body,head,leftArm,rightArm,leftLeg,rightLeg)
 scene.add(character)
 
-/* HALL */
+/* ─────────────────────────────────────────
+   SHARED HELPERS
+───────────────────────────────────────── */
 
-const hall=new THREE.Mesh(
-new THREE.BoxGeometry(18,12,18),
-new THREE.MeshStandardMaterial({
-color:0xff7a00,
-metalness:.5,
-roughness:.3
-})
-)
+const matCache = {}
+function mat(type, opts){
+  const key = JSON.stringify({type,...opts})
+  if(!matCache[key]){
+    matCache[key] = type==='basic'
+      ? new THREE.MeshBasicMaterial(opts)
+      : new THREE.MeshStandardMaterial(opts)
+  }
+  return matCache[key]
+}
 
-hall.position.set(0,6,-55)
+function box(w,h,d,m){ return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m) }
+function cyl(rt,rb,h,s,m){ return new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,s),m) }
+
+/* ─────────────────────────────────────────
+   HALL (back building)
+───────────────────────────────────────── */
+
+// Main building body
+const hallMat = mat('std',{color:0x110d1a, emissive:0x200010, emissiveIntensity:0.3, metalness:0.5, roughness:0.6})
+const hall = box(28,16,14, hallMat)
+hall.position.set(0,8,-58)
 scene.add(hall)
 
-/* PILLARS */
+// Roof ridge
+const roof = box(30,1.5,16, mat('std',{color:0x0a0814, metalness:0.7, roughness:0.3}))
+roof.position.set(0,16.6,-58)
+scene.add(roof)
 
-function pillar(x){
-
-const p=new THREE.Mesh(
-new THREE.CylinderGeometry(.8,.8,10,32),
-new THREE.MeshStandardMaterial({color:0x111111})
-)
-
-p.position.set(x,5,-52)
-scene.add(p)
-
-}
-
-pillar(-7)
-pillar(7)
-
-/* STAGE */
-
-const stage=new THREE.Mesh(
-new THREE.BoxGeometry(16,1,10),
-new THREE.MeshStandardMaterial({
-color:0xd4af37,
-metalness:.8,
-roughness:.3
+// Facade neon strips (horizontal glows across building front)
+;[3,7,11,15].forEach(y=>{
+  const strip = box(26,0.18,0.2, mat('basic',{color:0xff6600}))
+  strip.position.set(0,y,-51.1)
+  scene.add(strip)
 })
-)
 
-stage.position.set(0,.5,-42)
-scene.add(stage)
+// Building sign box
+const signBoard = box(14,2.8,0.3, mat('std',{color:0x0d0820, emissive:0xff5500, emissiveIntensity:0.15}))
+signBoard.position.set(0,13.5,-51)
+scene.add(signBoard)
 
-/* DRUM KIT */
-
-const drum=new THREE.Mesh(
-new THREE.CylinderGeometry(1.5,1.5,1,32),
-new THREE.MeshStandardMaterial({color:0xffffff})
-)
-
-drum.position.set(0,1.2,-44)
-scene.add(drum)
-
-function cymbal(x){
-
-const stand=new THREE.Mesh(
-new THREE.CylinderGeometry(.05,.05,2.5),
-new THREE.MeshStandardMaterial({color:0xaaaaaa})
-)
-
-stand.position.set(x,2.5,-44)
-scene.add(stand)
-
-const plate=new THREE.Mesh(
-new THREE.CylinderGeometry(1,1,.1,32),
-new THREE.MeshStandardMaterial({color:0xffd700})
-)
-
-plate.position.set(x,3.6,-44)
-scene.add(plate)
-
+if(!isMobile){
+  const hallGlow = new THREE.PointLight(0xff4400, 2, 40)
+  hallGlow.position.set(0,10,-50)
+  scene.add(hallGlow)
 }
 
-cymbal(-2)
-cymbal(2)
+/* ─────────────────────────────────────────
+   FUNCTION: Build a realistic stage
+   cx,cz = center; color = theme color
+───────────────────────────────────────── */
 
-/* GUITARISTS */
+function buildStage(cx, cz, themeColor, themeColorDim){
 
-function guitarist(x,color){
+  const g = new THREE.Group()
 
-const g=new THREE.Group()
+  // Stage platform — raised with front lip
+  const platform = box(14,1.2,8, mat('std',{color:0x1a1a1a, metalness:0.8, roughness:0.25}))
+  platform.position.set(0,0.6,0)
+  g.add(platform)
 
-const body=new THREE.Mesh(
-new THREE.BoxGeometry(1,1.8,.6),
-new THREE.MeshStandardMaterial({color})
-)
+  // Stage front fascia (decorative lip)
+  const fascia = box(14,0.6,0.3, mat('std',{color:0x111111, emissive:themeColor, emissiveIntensity:0.4, metalness:0.9}))
+  fascia.position.set(0,0.3,4.15)
+  g.add(fascia)
 
-body.position.y=1
+  // LED floor strip along front
+  const ledStrip = box(13.6,0.08,0.18, mat('basic',{color:themeColor}))
+  ledStrip.position.set(0,1.22,3.9)
+  g.add(ledStrip)
 
-const head=new THREE.Mesh(
-new THREE.SphereGeometry(.45),
-new THREE.MeshStandardMaterial({color})
-)
+  // Back truss towers (left + right)
+  ;[-5.5, 5.5].forEach(x=>{
+    // Vertical truss post
+    const post = cyl(0.12,0.12,10,6, mat('std',{color:0x333333, metalness:0.9, roughness:0.2}))
+    post.position.set(x,5,-3.5)
+    g.add(post)
 
-head.position.y=2.4
+    // Truss cross braces
+    for(let y=1; y<9; y+=2){
+      const brace = box(0.06,0.06,1.0, mat('basic',{color:0x444444}))
+      brace.position.set(x,y,-3.5)
+      brace.rotation.x = Math.PI/4
+      g.add(brace)
+    }
 
-g.add(body,head)
+    // Spot light head on top
+    const lampHead = box(0.5,0.4,0.5, mat('std',{color:0x222222, emissive:themeColor, emissiveIntensity:0.6}))
+    lampHead.position.set(x,10.3,-3.5)
+    g.add(lampHead)
+  })
 
-g.position.set(x,0,-41)
+  // Horizontal truss bar connecting tops
+  const trussBar = cyl(0.1,0.1,12,6, mat('std',{color:0x2a2a2a, metalness:0.9, roughness:0.2}))
+  trussBar.rotation.z = Math.PI/2
+  trussBar.position.set(0,10.3,-3.5)
+  g.add(trussBar)
 
-scene.add(g)
+  // LED bar on truss
+  const trussLED = box(10.5,0.12,0.12, mat('basic',{color:themeColor}))
+  trussLED.position.set(0,10.1,-3.5)
+  g.add(trussLED)
 
+  // Backdrop screen
+  const screen = box(11,6,0.15, mat('std',{color:0x0a0a0a, emissive:themeColorDim, emissiveIntensity:0.5}))
+  screen.position.set(0,5.5,-4)
+  g.add(screen)
+
+  // Screen border frame
+  const frameT = box(11.4,0.2,0.2, mat('basic',{color:themeColor}))
+  frameT.position.set(0,8.6,-3.9); g.add(frameT)
+  const frameB = frameT.clone(); frameB.position.set(0,2.4,-3.9); g.add(frameB)
+
+  // Speakers (left + right stacks)
+  ;[-6.5, 6.5].forEach(x=>{
+    // Bottom cab
+    const cab1 = box(2.2,3.5,1.8, mat('std',{color:0x111111, emissive:themeColor, emissiveIntensity:0.1, metalness:0.5}))
+    cab1.position.set(x,1.75,3)
+    g.add(cab1)
+    // Top cab (angled)
+    const cab2 = box(2.0,2.5,1.6, mat('std',{color:0x0d0d0d, emissive:themeColor, emissiveIntensity:0.15, metalness:0.5}))
+    cab2.position.set(x,4.5,3)
+    cab2.rotation.x = -0.12
+    g.add(cab2)
+    // Speaker cones (decorative circles)
+    ;[0.8,2.0,3.2].forEach(yOff=>{
+      const cone = cyl(0.4,0.4,0.12,16, mat('basic',{color:0x222222}))
+      cone.rotation.x = Math.PI/2
+      cone.position.set(x, yOff+0.2, 3.94)
+      g.add(cone)
+    })
+
+    if(!isMobile){
+      const spkGlow = new THREE.PointLight(themeColor, 2.5, 12)
+      spkGlow.position.set(x,3,3.5)
+      g.add(spkGlow)
+    }
+  })
+
+  // Drum kit
+  const drumBody = cyl(1.2,1.2,0.9, isMobile?8:20, mat('std',{color:0xffffff, metalness:0.3, roughness:0.5}))
+  drumBody.position.set(0,1.55,0)
+  g.add(drumBody)
+
+  // Drum rim
+  const drumRim = cyl(1.25,1.25,0.1,20, mat('basic',{color:themeColor}))
+  drumRim.position.set(0,2.05,0)
+  g.add(drumRim)
+
+  // Snare
+  const snare = cyl(0.55,0.55,0.5,12, mat('std',{color:0xdddddd, metalness:0.6}))
+  snare.position.set(-1.2,1.5,-0.5)
+  g.add(snare)
+
+  // Cymbals
+  ;[[-1.8,2.8,-0.8],[1.8,3.2,-0.5],[0,3.5,0.4]].forEach(([cx2,cy,cz2])=>{
+    const cymbalPlate = cyl(0.7,0.7,0.06,12, mat('basic',{color:0xddaa00}))
+    cymbalPlate.position.set(cx2,cy,cz2)
+    g.add(cymbalPlate)
+    const cymStand = cyl(0.03,0.03,cy,6, mat('basic',{color:0x666666}))
+    cymStand.position.set(cx2,cy/2,cz2)
+    g.add(cymStand)
+  })
+
+  // Band members (3 stylised figures)
+  ;[[-3,0,1],[0,0,0.5],[3,0,1]].forEach(([px,py,pz], idx)=>{
+    const colors=[0xff3344,0xffffff,0x44ff88]
+    const figMat = mat('std',{color:colors[idx], emissive:colors[idx], emissiveIntensity:0.1})
+    const torso = box(0.7,1.4,0.5, figMat)
+    torso.position.set(px,py+1.9,pz)
+    g.add(torso)
+    const figHead = new THREE.Mesh(new THREE.SphereGeometry(0.32,8,8), figMat)
+    figHead.position.set(px,py+3.0,pz)
+    g.add(figHead)
+  })
+
+  // Stair steps up to stage (front)
+  ;[0,1,2].forEach(i=>{
+    const step = box(3,0.3,0.4, mat('std',{color:0x1a1a1a, metalness:0.6}))
+    step.position.set(0,0.15+i*0.3,4.4-i*0.4)
+    g.add(step)
+  })
+
+  g.position.set(cx,0,cz)
+  scene.add(g)
+  return g
 }
 
-guitarist(-5,0xff4444)
-guitarist(5,0x44ff88)
+/* ─────────────────────────────────────────
+   3 STATIONS
+───────────────────────────────────────── */
 
-/* SINGER */
+// Station definitions: x, z, theme color, dim color, name, tag, desc
+const STATIONS = [
+  { x:  0, z:-46, color:0xff5500, dimColor:0x331100, name:'MAIN STAGE',    tag:'Headliner · 10PM',        desc:'The grand finale — Treble Dusk 7.0' },
+  { x:-22, z:-32, color:0x00aaff, dimColor:0x001a33, name:'BLUE TENT',      tag:'Electronic · All Night',  desc:'Underground beats & DJ sets'         },
+  { x: 22, z:-32, color:0xcc00ff, dimColor:0x1a0033, name:'NEON LOUNGE',    tag:'Ambient · Doors 6PM',     desc:'Chill vibes, cocktails, live art'     },
+]
 
-const singer=new THREE.Mesh(
-new THREE.CylinderGeometry(.7,.8,2),
-new THREE.MeshStandardMaterial({color:0xffffff})
-)
-
-singer.position.set(0,1,-39)
-scene.add(singer)
-
-/* MICROPHONE */
-
-const mic=new THREE.Mesh(
-new THREE.CylinderGeometry(.05,.05,2.5),
-new THREE.MeshStandardMaterial({color:0xaaaaaa})
-)
-
-mic.position.set(0,1.3,-39)
-scene.add(mic)
-
-/* SPEAKERS */
-
-function speaker(x){
-
-const s=new THREE.Mesh(
-new THREE.BoxGeometry(3,8,3),
-new THREE.MeshStandardMaterial({
-color:0xaa00ff,
-emissive:0xaa00ff,
-emissiveIntensity:2
+STATIONS.forEach(s=>{
+  s.group = buildStage(s.x, s.z, s.color, s.dimColor)
 })
+
+// Expand map bounds to cover side stages
+const BOUNDS = { minX:-50, maxX:50, minZ:-57, maxZ:14 }
+
+/* ─────────────────────────────────────────
+   PILLARS (entrance gate)
+───────────────────────────────────────── */
+
+function gatePillar(x){
+  const base = box(1.2,0.5,1.2, mat('std',{color:0x1a1a1a, metalness:0.7}))
+  base.position.set(x,0.25,0)
+  scene.add(base)
+  const shaft = cyl(0.35,0.4,6, isMobile?6:16, mat('std',{color:0x222222, metalness:0.8, roughness:0.2}))
+  shaft.position.set(x,3.5,0)
+  scene.add(shaft)
+  const cap = box(1.0,0.4,1.0, mat('std',{color:0x111111, emissive:0xff5500, emissiveIntensity:0.5}))
+  cap.position.set(x,6.7,0)
+  scene.add(cap)
+  if(!isMobile){
+    const gateLight = new THREE.PointLight(0xff5500,1.5,14)
+    gateLight.position.set(x,7,0)
+    scene.add(gateLight)
+  }
+}
+gatePillar(-4)
+gatePillar(4)
+
+// Gate arch beam
+const arch = cyl(0.15,0.15,9.5,6, mat('std',{color:0x1a1a1a, metalness:0.9}))
+arch.rotation.z = Math.PI/2
+arch.position.set(0,7,0)
+scene.add(arch)
+
+/* ─────────────────────────────────────────
+   STAGE LIGHTS (desktop only)
+───────────────────────────────────────── */
+
+if(!isMobile){
+  STATIONS.forEach(s=>{
+    ;[-4,0,4].forEach(ox=>{
+      const sl = new THREE.SpotLight(s.color, 6)
+      sl.position.set(s.x+ox, 14, s.z+4)
+      sl.angle = Math.PI/7
+      sl.penumbra = 0.5
+      sl.distance = 80
+      const tgt = new THREE.Object3D()
+      tgt.position.set(s.x+ox*0.3, 0, s.z)
+      scene.add(tgt)
+      sl.target = tgt
+      scene.add(sl)
+    })
+  })
+} else {
+  scene.add(new THREE.AmbientLight(0xff9955, 0.4))
+}
+
+/* ─────────────────────────────────────────
+   CROWD (instanced, in front of main stage)
+───────────────────────────────────────── */
+
+const CROWD_COUNT = isMobile ? 80 : 250
+const crowdPositions = []
+
+const bodyInst = new THREE.InstancedMesh(
+  new THREE.CylinderGeometry(0.3,0.4,1.2,6),
+  new THREE.MeshBasicMaterial({color:0x222222}),
+  CROWD_COUNT
+)
+const headInst = new THREE.InstancedMesh(
+  new THREE.SphereGeometry(0.25,5,5),
+  new THREE.MeshBasicMaterial({color:0x333333}),
+  CROWD_COUNT
 )
 
-s.position.set(x,4,-40)
-scene.add(s)
+const _dummy = new THREE.Object3D()
 
+for(let i=0;i<CROWD_COUNT;i++){
+  const x=(Math.random()-0.5)*26
+  const z=-30-Math.random()*10
+  crowdPositions.push({x,z})
+  _dummy.position.set(x,0.6,z); _dummy.updateMatrix(); bodyInst.setMatrixAt(i,_dummy.matrix)
+  _dummy.position.set(x,1.5,z); _dummy.updateMatrix(); headInst.setMatrixAt(i,_dummy.matrix)
 }
+bodyInst.instanceMatrix.needsUpdate = true
+headInst.instanceMatrix.needsUpdate = true
+scene.add(bodyInst)
+scene.add(headInst)
 
-speaker(-12)
-speaker(12)
-
-/* CROWD */
-
-const crowd=[]
-
-function createPerson(x,z){
-
-const person=new THREE.Group()
-
-const body=new THREE.Mesh(
-new THREE.CylinderGeometry(0.3,0.4,1.2,8),
-new THREE.MeshStandardMaterial({color:0x111111})
-)
-
-body.position.y=0.6
-
-const head=new THREE.Mesh(
-new THREE.SphereGeometry(0.25,8,8),
-new THREE.MeshStandardMaterial({color:0x111111})
-)
-
-head.position.y=1.5
-
-person.add(body)
-person.add(head)
-
-person.position.set(x,0,z)
-
-scene.add(person)
-
-crowd.push(person)
-
-}
-
-for(let i=0;i<250;i++){
-
-const x=(Math.random()-0.5)*30
-const z=-25-Math.random()*10
-
-createPerson(x,z)
-
-}
-
-/* STAGE LIGHTS */
-
-function createLight(x){
-
-const light=new THREE.SpotLight(0xff7a00,8)
-light.position.set(x,12,-40)
-light.angle=Math.PI/6
-light.penumbra=.5
-light.distance=120
-
-const target=new THREE.Object3D()
-target.position.set(0,0,-42)
-scene.add(target)
-
-light.target=target
-
-scene.add(light)
-
-}
-
-createLight(-8)
-createLight(-4)
-createLight(0)
-createLight(4)
-createLight(8)
-
-/* FIREWORKS */
+/* ─────────────────────────────────────────
+   FIREWORKS
+───────────────────────────────────────── */
 
 let fireworks=[]
+const fwGeo = new THREE.SphereGeometry(.25, isMobile?4:8, isMobile?4:8)
+const fwMats = [
+  new THREE.MeshBasicMaterial({color:0xff7a00}),
+  new THREE.MeshBasicMaterial({color:0xffffff}),
+  new THREE.MeshBasicMaterial({color:0x4488ff})
+]
 
 function createFirework(){
-
-for(let i=0;i<80;i++){
-
-const p=new THREE.Mesh(
-new THREE.SphereGeometry(.25),
-new THREE.MeshBasicMaterial({
-color:[0xff7a00,0xffffff,0x4488ff][Math.floor(Math.random()*3)]
-})
-)
-
-p.position.set(Math.random()*40-20,20,-70)
-
-p.v={
-x:(Math.random()-.5)*1.8,
-y:Math.random()*3,
-z:(Math.random()-.5)*1.8
+  const count = isMobile ? 30 : 80
+  for(let i=0;i<count;i++){
+    const p=new THREE.Mesh(fwGeo, fwMats[Math.floor(Math.random()*3)])
+    p.position.set(Math.random()*40-20,20,-60)
+    p.v={ x:(Math.random()-.5)*1.8, y:Math.random()*3, z:(Math.random()-.5)*1.8 }
+    scene.add(p); fireworks.push(p)
+  }
 }
 
-scene.add(p)
-fireworks.push(p)
+/* ─────────────────────────────────────────
+   CONTROLS
+───────────────────────────────────────── */
 
+const keys={ up:false, down:false, left:false, right:false }
+const keyMap={
+  'w':'up','ArrowUp':'up',
+  's':'down','ArrowDown':'down',
+  'a':'left','ArrowLeft':'left',
+  'd':'right','ArrowRight':'right'
+}
+const dirEls={
+  up:    document.getElementById('key-up'),
+  down:  document.getElementById('key-down'),
+  left:  document.getElementById('key-left'),
+  right: document.getElementById('key-right')
 }
 
-}
-
-/* ============================
-   KEYBOARD MOVEMENT CONTROLS
-   ============================ */
-
-const keys={
-  w:false, a:false, s:false, d:false,
-  ArrowUp:false, ArrowLeft:false, ArrowDown:false, ArrowRight:false
-}
-
-const keyEls={
-  w: document.getElementById('key-w'),
-  a: document.getElementById('key-a'),
-  s: document.getElementById('key-s'),
-  d: document.getElementById('key-d'),
-  ArrowUp: document.getElementById('key-up'),
-  ArrowLeft: document.getElementById('key-left'),
-  ArrowDown: document.getElementById('key-down'),
-  ArrowRight: document.getElementById('key-right')
+function setKey(dir, val){
+  if(!(dir in keys)) return
+  keys[dir] = val
+  if(val) dirEls[dir].classList.add('active')
+  else    dirEls[dir].classList.remove('active')
+  document.getElementById('hint').style.opacity='0'
 }
 
 document.addEventListener('keydown', e=>{
-  const k = e.key
-  if(k in keys){
-    e.preventDefault()
-    keys[k]=true
-    if(keyEls[k]) keyEls[k].classList.add('active')
-    // hide hint on first keypress
-    document.getElementById('hint').style.opacity='0'
-  }
+  const dir = keyMap[e.key]
+  if(dir){ e.preventDefault(); setKey(dir, true) }
 })
-
 document.addEventListener('keyup', e=>{
-  const k = e.key
-  if(k in keys){
-    keys[k]=false
-    if(keyEls[k]) keyEls[k].classList.remove('active')
-  }
+  const dir = keyMap[e.key]
+  if(dir){ setKey(dir, false) }
 })
 
-/* Movement state */
-const MOVE_SPEED = 0.12
-const CAM_OFFSET = new THREE.Vector3(0, 4, 8) // camera behind & above character
-let dancing = false
-let dancingTriggered = false
-let characterFacing = 0 // radians, character's Y rotation
+Object.entries(dirEls).forEach(([dir, el])=>{
+  el.addEventListener('touchstart', e=>{ e.preventDefault(); setKey(dir, true)  }, {passive:false})
+  el.addEventListener('touchend',   e=>{ e.preventDefault(); setKey(dir, false) }, {passive:false})
+  el.addEventListener('touchcancel',e=>{ e.preventDefault(); setKey(dir, false) }, {passive:false})
+  el.addEventListener('mousedown',  ()=>setKey(dir, true))
+  el.addEventListener('mouseup',    ()=>setKey(dir, false))
+  el.addEventListener('mouseleave', ()=>setKey(dir, false))
+})
 
-/* BOUNDS - keep character on the map */
-const BOUNDS = { minX:-40, maxX:40, minZ:-53, maxZ:14 }
+/* ─────────────────────────────────────────
+   PROXIMITY POPUP SYSTEM
+───────────────────────────────────────── */
+
+const TRIGGER_DIST = 9
+const popup = document.getElementById('station-popup')
+const popupName = document.getElementById('popup-name')
+const popupTag  = document.getElementById('popup-tag')
+const popupDesc = document.getElementById('popup-desc')
+
+let activeStation = null
+let fireworkInterval = null
+
+function checkProximity(){
+  let nearest = null
+  let nearestDist = Infinity
+  STATIONS.forEach(s=>{
+    const dx = character.position.x - s.x
+    const dz = character.position.z - s.z
+    const d = Math.sqrt(dx*dx + dz*dz)
+    if(d < TRIGGER_DIST && d < nearestDist){
+      nearestDist = d
+      nearest = s
+    }
+  })
+
+  if(nearest !== activeStation){
+    activeStation = nearest
+    if(nearest){
+      popupName.textContent = nearest.name
+      popupTag.textContent  = nearest.tag
+      popupDesc.textContent = nearest.desc
+      popup.classList.add('visible')
+      // Fireworks only at main stage
+      if(nearest.z < -40 && !fireworkInterval){
+        fireworkInterval = setInterval(createFirework, 700)
+        document.getElementById('song').play().catch(()=>{})
+      }
+    } else {
+      popup.classList.remove('visible')
+    }
+  }
+}
+
+/* ─────────────────────────────────────────
+   MOVEMENT STATE
+───────────────────────────────────────── */
+
+const MOVE_SPEED = 0.12
+let characterFacing = 0
 
 function clamp(val, min, max){ return Math.max(min, Math.min(max, val)) }
 
-/* ANIMATION */
+/* ─────────────────────────────────────────
+   ANIMATION LOOP
+───────────────────────────────────────── */
 
 function animate(){
+  requestAnimationFrame(animate)
+  stars.rotation.y += 0.0002
 
-requestAnimationFrame(animate)
+  let dx=0, dz=0, moving=false
+  if(keys.up)    { dz=-1; moving=true }
+  if(keys.down)  { dz= 1; moving=true }
+  if(keys.left)  { dx=-1; moving=true }
+  if(keys.right) { dx= 1; moving=true }
 
-stars.rotation.y+=0.0002
-
-/* --- KEYBOARD MOVEMENT --- */
-let moving = false
-let dx = 0, dz = 0
-
-if(keys.w || keys.ArrowUp)    { dz = -1; moving = true }
-if(keys.s || keys.ArrowDown)  { dz =  1; moving = true }
-if(keys.a || keys.ArrowLeft)  { dx = -1; moving = true }
-if(keys.d || keys.ArrowRight) { dx =  1; moving = true }
-
-if(moving && !dancing){
-
-  // Normalize diagonal
-  if(dx!==0 && dz!==0){ dx*=0.707; dz*=0.707 }
-
-  const newX = clamp(character.position.x + dx * MOVE_SPEED, BOUNDS.minX, BOUNDS.maxX)
-  const newZ = clamp(character.position.z + dz * MOVE_SPEED, BOUNDS.minZ, BOUNDS.maxZ)
-
-  character.position.x = newX
-  character.position.z = newZ
-
-  // Face movement direction
-  if(dx!==0 || dz!==0){
-    characterFacing = Math.atan2(dx, dz) + Math.PI
-    character.rotation.y = characterFacing
+  if(moving){
+    if(dx!==0 && dz!==0){ dx*=0.707; dz*=0.707 }
+    character.position.x = clamp(character.position.x + dx*MOVE_SPEED, BOUNDS.minX, BOUNDS.maxX)
+    character.position.z = clamp(character.position.z + dz*MOVE_SPEED, BOUNDS.minZ, BOUNDS.maxZ)
+    if(dx!==0||dz!==0){
+      characterFacing = Math.atan2(dx,dz)+Math.PI
+      character.rotation.y = characterFacing
+    }
+    const walk = Math.sin(Date.now()*0.012)
+    leftLeg.rotation.x  =  walk; rightLeg.rotation.x = -walk
+    leftArm.rotation.x  = -walk; rightArm.rotation.x =  walk
+  } else {
+    leftLeg.rotation.x  *= 0.85; rightLeg.rotation.x *= 0.85
+    leftArm.rotation.x  *= 0.85; rightArm.rotation.x *= 0.85
   }
 
-  // Walk animation
-  const walk = Math.sin(Date.now()*0.012)
-  leftLeg.rotation.x  =  walk
-  rightLeg.rotation.x = -walk
-  leftArm.rotation.x  = -walk
-  rightArm.rotation.x =  walk
-
-  // Camera follows character smoothly
+  // Smooth camera follow
   const targetCamX = character.position.x
   const targetCamZ = character.position.z + 8
   camera.position.x += (targetCamX - camera.position.x) * 0.08
@@ -645,66 +1044,33 @@ if(moving && !dancing){
   camera.position.y = 4
   camera.lookAt(character.position.x, 2, character.position.z)
 
-  // Trigger concert when close enough to stage
-  if(character.position.z < -30 && !dancingTriggered){
-    dancingTriggered = true
-    dancing = true
-    document.getElementById('title').style.display = 'block'
-    document.getElementById('song').play().catch(()=>{})
-    setInterval(createFirework, 700)
+  // Crowd bob when near main stage
+  if(activeStation && activeStation.z < -40){
+    character.position.y = Math.sin(Date.now()*0.008)*0.15
+    const t = Date.now()*0.004
+    for(let i=0;i<CROWD_COUNT;i++){
+      const bob = Math.sin(t+i)*0.12
+      const cp = crowdPositions[i]
+      _dummy.position.set(cp.x,0.6+bob,cp.z); _dummy.updateMatrix(); bodyInst.setMatrixAt(i,_dummy.matrix)
+      _dummy.position.set(cp.x,1.5+bob,cp.z); _dummy.updateMatrix(); headInst.setMatrixAt(i,_dummy.matrix)
+    }
+    bodyInst.instanceMatrix.needsUpdate = true
+    headInst.instanceMatrix.needsUpdate = true
+  } else {
+    character.position.y += (0 - character.position.y) * 0.1
   }
 
-} else if(!dancing){
+  checkProximity()
 
-  // Idle - reset limb rotations
-  leftLeg.rotation.x  *= 0.85
-  rightLeg.rotation.x *= 0.85
-  leftArm.rotation.x  *= 0.85
-  rightArm.rotation.x *= 0.85
+  // Fireworks
+  for(let i=fireworks.length-1;i>=0;i--){
+    const p=fireworks[i]
+    p.position.x+=p.v.x; p.position.y+=p.v.y; p.position.z+=p.v.z
+    p.v.y-=0.05
+    if(p.position.y<-5){ scene.remove(p); fireworks.splice(i,1) }
+  }
 
-  // Camera still follows when idle
-  const targetCamX = character.position.x
-  const targetCamZ = character.position.z + 8
-  camera.position.x += (targetCamX - camera.position.x) * 0.05
-  camera.position.z += (targetCamZ - camera.position.z) * 0.05
-  camera.lookAt(character.position.x, 2, character.position.z)
-}
-
-/* DANCING MODE */
-
-if(dancing){
-
-  character.rotation.y += 0.05
-  character.position.y = Math.sin(Date.now()*0.01) * 0.3
-
-  crowd.forEach((p,i)=>{
-    p.position.y = Math.sin(Date.now()*0.004+i) * 0.15
-  })
-
-  // Camera orbits slightly during concert
-  const t = Date.now() * 0.0003
-  camera.position.x += (Math.sin(t)*2 - camera.position.x) * 0.01
-  camera.lookAt(character.position.x, 2, character.position.z)
-}
-
-/* FIREWORKS */
-
-fireworks.forEach((p,i)=>{
-
-p.position.x+=p.v.x
-p.position.y+=p.v.y
-p.position.z+=p.v.z
-p.v.y-=.05
-
-if(p.position.y < -5){
-scene.remove(p)
-fireworks.splice(i,1)
-}
-
-})
-
-renderer.render(scene,camera)
-
+  renderer.render(scene,camera)
 }
 
 animate()
@@ -714,6 +1080,15 @@ camera.aspect=window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 renderer.setSize(window.innerWidth,window.innerHeight)
 })
+
+// ── LOADER BOOT ──
+const loaderFill = document.getElementById('loader-fill')
+const loader = document.getElementById('loader')
+loaderFill.style.width = '100%'
+setTimeout(()=>{
+  loader.style.opacity = '0'
+  setTimeout(()=>{ loader.style.display='none' }, 650)
+}, 1400)
 
 </script>
 
